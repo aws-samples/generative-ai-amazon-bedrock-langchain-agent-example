@@ -1,0 +1,15 @@
+[
+  {
+    "userName": "Demo User",
+    "planName": "Mortgage",
+    "amountDue": 3325,
+    "dueDate": "2023-09-01",
+    "loanAmount": 640000,
+    "loanDuration": 30,
+    "loanInterest": 5.735,
+    "unpaidPrincipal": 250000,
+    "pin": 1234,
+    "prefix": "Mr",
+    "planId": "d7edc887-f09f"
+  }
+]

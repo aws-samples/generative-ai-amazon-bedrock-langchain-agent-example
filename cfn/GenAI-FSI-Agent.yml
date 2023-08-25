@@ -1,0 +1,471 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "GenAI Financial Services Agent powered by Amazon Lex, Amazon Bedrock, Amazon DynamoDB, and Amazon Kendra"
+Metadata:
+  LICENSE: >-
+    Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this
+    software and associated documentation files (the "Software"), to deal in the Software
+    without restriction, including without limitation the rights to use, copy, modify,
+    merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+    INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+    PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+    HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Parameters:
+  S3ArtifactBucket:
+    Description: S3 Bucket Containing Lambda Handler, Lambda Data Loader, and Lex Deployment Packages, along with Customer FAQ and Mortgage Application example documents.
+    Type: String
+    Default: your-s3-bucket-name
+  DataLoaderS3Key:
+    Description: S3 Key for Data Loader
+    Type: String
+    Default: /agent/lambda/data-loader/loader_deployment_package.zip
+  LambdaHandlerS3Key:
+    Description: S3 Key for Lambda Handler
+    Type: String
+    Default: /agent/lambda/agent-handler/agent_deployment_package.zip
+  BedrockLangChainLayerArn:
+    Description: ARN for Bedrock LangChain Lambda layer
+    Type: String
+  PyPDFLayerArn:
+    Description: ARN for PyPDF Lambda layer
+    Type: String
+  LexBotS3Key:
+    Description: S3 key for Lex chatbot deployment package. 
+    Type: String
+    Default: /agent/bot/lex.zip
+  GitHubTokenSecretName:
+    Description: GitHub PAT. 
+    Type: String
+    NoEcho: true
+    Default: your-github-token-secret-name
+  KendraWebCrawlerUrl:
+    Description: Seed URL for Kendra WebCrawler. 
+    Type: String
+    Default: your-root-domain
+  AmplifyRepository:
+    Description: Source repository for AWS Amplify frontend. 
+    Type: String
+    Default: https://github.com/aws-samples/aws-langchain-bedrock-agent-example.git
+
+Resources:
+  UserPendingAccountsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${AWS::StackName}-UserPendingAccounts
+      AttributeDefinitions:
+      - AttributeName: userName
+        AttributeType: S
+      - AttributeName: planName
+        AttributeType: S
+      KeySchema:
+      - AttributeName: userName
+        KeyType: HASH
+      - AttributeName: planName
+        KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: '3'
+        WriteCapacityUnits: '3'
+      SSESpecification:
+        SSEEnabled: True
+
+  UserExistingAccountsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${AWS::StackName}-UserExistingAccounts
+      AttributeDefinitions:
+      - AttributeName: userName
+        AttributeType: S
+      - AttributeName: planName
+        AttributeType: S
+      KeySchema:
+      - AttributeName: userName
+        KeyType: HASH
+      - AttributeName: planName
+        KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: '3'
+        WriteCapacityUnits: '3'
+      SSESpecification:
+        SSEEnabled: True
+
+  ConversationIndexTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: !Sub ${AWS::StackName}-ConversationIndexTable
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: True
+
+  ConversationTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: !Sub ${AWS::StackName}-ConversationTable
+      KeySchema:
+        - AttributeName: SessionId
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: SessionId
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: True
+
+  AgentHandlerServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-AgentHandlerServiceRole
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - !Join 
+          - ''
+          - - 'arn:'
+            - !Ref 'AWS::Partition'
+            - ':iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+
+  AgentHandlerServiceRoleDefaultPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: !Sub ${AWS::StackName}-AgentHandlerServiceRoleDefaultPolicy
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:ConditionCheckItem
+              - dynamodb:DeleteItem
+              - dynamodb:DescribeTable
+              - dynamodb:GetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:PutItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+              - lambda:InvokeFunction
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+              - bedrock:ListFoundationModels
+              - bedrock:ListCustomModels
+              - bedrock:ListPrompts
+            Effect: Allow
+            Resource: '*'
+          - Action:
+              - s3:PutObject
+              - s3:PutObjectAcl
+              - s3:GetObject
+              - s3:GetObjectAcl
+              - s3:GetObjectVersion
+            Effect: Allow
+            Resource: 
+              - !Sub arn:aws:s3:::{S3ArtifactBucket}
+              - !Sub arn:aws:s3:::{S3ArtifactBucket}/*         
+        Version: 2012-10-17
+      Roles:
+        - !Ref AgentHandlerServiceRole
+
+  AgentHandlerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Lambda handler for GenAI FSI Agent.
+      FunctionName: !Sub ${AWS::StackName}-GenAILexHandler
+      Code:
+        S3Bucket: !Ref S3ArtifactBucket
+        S3Key: !Ref LambdaHandlerS3Key
+      Runtime: python3.9
+      MemorySize: 512
+      Timeout: 30
+      Handler: lambda_function.handler
+      Layers:
+        - !Ref BedrockLangChainLayerArn
+        - !Ref PyPDFLayerArn
+      Role: !GetAtt AgentHandlerServiceRole.Arn
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          USER_PENDING_ACCOUNTS_TABLE: !Ref UserPendingAccountsTable
+          USER_EXISTING_ACCOUNTS_TABLE: !Ref UserExistingAccountsTable
+          CONVERSATION_INDEX_TABLE: !Ref ConversationIndexTable
+          CONVERSATION_TABLE: !Ref ConversationTable
+          KENDRA_INDEX_ID: !GetAtt KendraIndex.Id
+
+  LexLambdaPermissions:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref AgentHandlerFunction
+      Principal: 'lexv2.amazonaws.com'
+
+  DataLoaderFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Lambda function to load the plan catalog.
+      FunctionName: !Sub ${AWS::StackName}-GenAIDataLoader
+      Code: 
+        S3Bucket: !Ref S3ArtifactBucket
+        S3Key: !Ref DataLoaderS3Key
+      Runtime: nodejs14.x
+      MemorySize: 256
+      Timeout: 20
+      Handler: index.handler
+      Role: !GetAtt AgentHandlerServiceRole.Arn
+      Environment:
+        Variables:
+          USER_EXISTING_ACCOUNTS_TABLE: !Ref UserExistingAccountsTable
+
+  LoadPlanData:
+    Type: Custom::LoadDynamoDB
+    Properties:
+      ServiceToken: !GetAtt DataLoaderFunction.Arn
+
+  AmplifyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-AmplifyRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - amplify.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: !Sub ${AWS::StackName}-Amplify
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: 
+            - 'amplify:Create*'
+            - 'amplify:Get*'
+            - 'amplify:List*'
+            - 'amplify:Start*'
+            - 'amplify:Stop*'
+            - 'amplify:Update*'
+            Resource: '*'
+
+  AmplifyApp:
+    Type: AWS::Amplify::App
+    Properties:
+      Name: !Sub ${AWS::StackName}-Otank-Financial-Website
+      Repository: !Ref AmplifyRepository
+      BuildSpec: |
+        frontend:
+          phases:
+            # IMPORTANT - Please verify your build commands
+            build:
+              commands: []
+          artifacts:
+            # IMPORTANT - Please verify your build output directory
+            baseDirectory: ./frontend/
+            files:
+              - '**/*'
+          cache:
+            paths: []
+      AccessToken: !Sub "{{resolve:secretsmanager:${GitHubTokenSecretName}}}"
+      Description: Octank Financial website
+      IAMServiceRole: !GetAtt AmplifyRole.Arn
+
+  AmplifyBranch:
+    Type: AWS::Amplify::Branch
+    Properties:
+      AppId: !GetAtt AmplifyApp.AppId
+      BranchName: main
+
+  KendraLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub ${AWS::StackName}-KendraLogGroup
+      RetentionInDays: 7
+
+  KendraLogStream:
+    Type: AWS::Logs::LogStream
+    Properties:
+      LogGroupName: !Ref KendraLogGroup
+      LogStreamName: !Sub ${AWS::StackName}-KendraLogStream
+    DependsOn: KendraLogGroup
+
+  KendraIndexRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-KendraIndexRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - kendra.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: !Sub ${AWS::StackName}-KendraIndexPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: cloudwatch:PutMetricData
+            Resource: '*'
+          - Effect: Allow
+            Action: logs:DescribeLogGroups
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - 'logs:CreateLogGroup'
+            - 'logs:DescribeLogStreams'
+            - 'logs:CreateLogStream'
+            - 'logs:PutLogEvents'
+            Resource: '*'
+
+  KendraIndex:
+    Type: AWS::Kendra::Index
+    Properties:
+      Edition: DEVELOPER_EDITION
+      Name: !Sub ${AWS::StackName}-KendraIndex
+      RoleArn: !GetAtt KendraIndexRole.Arn
+
+  KendraDataSourceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-KendraDataSourceRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - kendra.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: !Sub ${AWS::StackName}-KendraDataSourcePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - 's3:GetObject'
+            - 's3:GetBucketLocation'
+            - 's3:ListBucket'
+            - 's3:GetBucketAcl'
+            - 's3:GetObjectAcl'
+            Resource:
+            - !Sub arn:aws:s3:::${S3ArtifactBucket}
+            - !Sub arn:aws:s3:::${S3ArtifactBucket}/*
+          - Effect: Allow
+            Action:
+            - 'kendra:PutPrincipalMapping'
+            - 'kendra:DeletePrincipalMapping'
+            - 'kendra:ListGroupsOlderThanOrderingId'
+            - 'kendra:DescribePrincipalMapping'
+            - 'kendra:BatchPutDocument'
+            - 'kendra:BatchDeleteDocument'
+            Resource: '*'
+
+  KendraS3DataSource:
+    DependsOn: KendraIndex
+    Type: AWS::Kendra::DataSource
+    Properties:
+      Name: !Sub ${AWS::StackName}-S3DataSource
+      Type: S3
+      IndexId: !GetAtt KendraIndex.Id
+      RoleArn: !GetAtt KendraDataSourceRole.Arn
+      DataSourceConfiguration:
+        S3Configuration:
+          BucketName: !Ref S3ArtifactBucket
+
+  KendraWebCrawler:
+    DependsOn: KendraIndex
+    Type: AWS::Kendra::DataSource
+    Properties:
+      Name: !Sub ${AWS::StackName}-WebCrawler
+      Type: WEBCRAWLER
+      IndexId: !GetAtt KendraIndex.Id
+      RoleArn: !GetAtt KendraDataSourceRole.Arn
+      DataSourceConfiguration:
+        WebCrawlerConfiguration: 
+          CrawlDepth: 3
+          Urls: 
+            SeedUrlConfiguration:
+              SeedUrls: 
+                - !Ref KendraWebCrawlerUrl
+              WebCrawlerMode: EVERYTHING
+
+  LexBotRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-LexBotRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lexv2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: "/"
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-LexBotRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'polly:SynthesizeSpeech'
+                  - 'comprehend:DetectSentiment'
+                Resource: "*"
+
+  LexBot:
+    DependsOn: LexBotRole
+    Type: AWS::Lex::Bot
+    Properties:
+        Name: !Sub ${AWS::StackName}-FSI-Agent
+        BotFileS3Location: 
+          S3Bucket: !Ref S3ArtifactBucket
+          S3ObjectKey: !Ref LexBotS3Key
+        DataPrivacy: 
+          ChildDirected: false
+        Description: 'Financial Service Agent'
+        IdleSessionTTLInSeconds: 120
+        RoleArn: !GetAtt LexBotRole.Arn
+
+
+Outputs:
+  AmplifyDemoWebsite:
+    Value: !Join ['', ['main.', !GetAtt AmplifyApp.DefaultDomain]]
+  AmplifyAppID:
+    Value: !GetAtt AmplifyApp.AppId
+  AmplifyBranch:
+    Value: !GetAtt AmplifyBranch.BranchName
+  KendraIndexID:
+    Value: !GetAtt KendraIndex.Id
+  KendraS3DataSourceID:
+    Value: !GetAtt KendraS3DataSource.Id
+  KendraWebCrawlerDataSourceID:
+    Value: !GetAtt KendraWebCrawler.Id
+  LambdaARN:
+    Value: !GetAtt AgentHandlerFunction.Arn
+  LexBotID:
+    Value: !GetAtt LexBot.Id
