@@ -52,7 +52,7 @@ Parameters:
   AmplifyRepository:
     Description: Source repository for AWS Amplify frontend. 
     Type: String
-    Default: https://github.com/aws-samples/aws-langchain-bedrock-agent-example.git
+    Default: https://github.com/aws-samples/generative-ai-amazon-bedrock-langchain-agent-example
 
 Resources:
   UserPendingAccountsTable:
