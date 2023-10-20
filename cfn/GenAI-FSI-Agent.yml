@@ -161,11 +161,8 @@ Resources:
               - dynamodb:Scan
               - dynamodb:UpdateItem
               - lambda:InvokeFunction
-              - bedrock:InvokeModel
-              - bedrock:InvokeModelWithResponseStream
-              - bedrock:ListFoundationModels
-              - bedrock:ListCustomModels
-              - bedrock:ListPrompts
+              - bedrock:*
+              - kendra:*
             Effect: Allow
             Resource: '*'
           - Action:
