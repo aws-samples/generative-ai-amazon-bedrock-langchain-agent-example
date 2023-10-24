@@ -28,9 +28,9 @@ class Tools():
         region = os.environ['AWS_REGION']
 
         llm = Bedrock(
-            model_id="anthropic.claude-instant-v1"
+            model_id="anthropic.claude-v2" # "anthropic.claude-instant-v1"
         )  
-        llm.model_kwargs = {'max_tokens_to_sample': 200} 
+        llm.model_kwargs = {'max_tokens_to_sample': 350} 
 
         retriever = KendraIndexRetriever(
             kendraindex=kendra_index_id, 
@@ -74,7 +74,7 @@ class Tools():
     def chain_tool(self, input):
         chain = self.build_chain()
         result = self.run_chain(chain, input)
-        print("Chain-of-Thought result = " + str(result))
+
 
         if 'source_documents' in result:
             print('Sources:')

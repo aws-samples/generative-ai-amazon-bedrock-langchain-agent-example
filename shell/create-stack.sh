@@ -10,7 +10,7 @@ export LAMBDA_HANDLER_S3_KEY="agent/lambda/agent-handler/agent_deployment_packag
 export LEX_BOT_S3_KEY="agent/bot/lex.zip"
 
 aws s3 mb s3://${S3_ARTIFACT_BUCKET_NAME} --region us-east-1
-aws s3 cp ../agent/ s3://${S3_ARTIFACT_BUCKET_NAME}/agent/ --recursive
+aws s3 cp ../agent/ s3://${S3_ARTIFACT_BUCKET_NAME}/agent/ --recursive --exclude ".DS_Store"
 
 export BEDROCK_LANGCHAIN_LAYER_ARN=$(aws lambda publish-layer-version \
     --layer-name bedrock-langchain \

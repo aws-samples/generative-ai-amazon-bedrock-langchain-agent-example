@@ -163,18 +163,9 @@ Resources:
               - lambda:InvokeFunction
               - bedrock:*
               - kendra:*
+              - s3:*
             Effect: Allow
-            Resource: '*'
-          - Action:
-              - s3:PutObject
-              - s3:PutObjectAcl
-              - s3:GetObject
-              - s3:GetObjectAcl
-              - s3:GetObjectVersion
-            Effect: Allow
-            Resource: 
-              - !Sub arn:aws:s3:::{S3ArtifactBucket}
-              - !Sub arn:aws:s3:::{S3ArtifactBucket}/*         
+            Resource: '*'        
         Version: 2012-10-17
       Roles:
         - !Ref AgentHandlerServiceRole
@@ -204,6 +195,7 @@ Resources:
           CONVERSATION_INDEX_TABLE: !Ref ConversationIndexTable
           CONVERSATION_TABLE: !Ref ConversationTable
           KENDRA_INDEX_ID: !GetAtt KendraIndex.Id
+          S3_ARTIFACT_BUCKET_NAME: !Ref S3ArtifactBucket
 
   LexLambdaPermissions:
     Type: AWS::Lambda::Permission

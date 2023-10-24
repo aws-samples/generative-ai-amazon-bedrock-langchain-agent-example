@@ -18,9 +18,10 @@ from pypdf import PdfReader, PdfWriter
 # Create reference to DynamoDB tables
 loan_application_table_name = os.environ['USER_PENDING_ACCOUNTS_TABLE']
 user_accounts_table_name = os.environ['USER_EXISTING_ACCOUNTS_TABLE']
+s3_artifact_bucket = os.environ['S3_ARTIFACT_BUCKET_NAME']
 
 # Instantiate boto3 clients and resources
-dynamodb = boto3.resource('dynamodb', region_name=os.environ['AWS_REGION'])
+dynamodb = boto3.resource('dynamodb',region_name=os.environ['AWS_REGION'])
 s3_client = boto3.client('s3',region_name=os.environ['AWS_REGION'],config=boto3.session.Config(signature_version='s3v4',))
 s3_object = boto3.resource('s3')
 
@@ -120,7 +121,7 @@ def elicit_intent(intent_request, session_attributes, message):
                         },
                         {
                             "text": "Ask GenAI",
-                            "value": "What kind of questions can FSI Agent answer?"
+                            "value": "What kind of questions can the Assistant answer?"
                         }
                     ],
                     "title": "How can I help you?"
@@ -217,31 +218,30 @@ def build_validation_result(isvalid, violated_slot, message_content):
 
 def isvalid_date(date):
     try:
-        dateutil.parser.parse(date)
+        dateutil.parser.parse(date, fuzzy=True)
+        print("TRUE DATE")
         return True
-    except ValueError:
+    except ValueError as e:
+        print("DATE PARSER ERROR = " + str(e))
         return False
 
 
 def isvalid_yes_or_no(value):
     if value == 'Yes' or value == 'yes' or value == 'No' or value == 'no':
         return True
-    else:
-        return False
+    return False
 
 
 def isvalid_credit_score(credit_score):
     if int(credit_score) < 851 and int(credit_score) > 300:
         return True
-    else:
-        return False
+    return False
 
 
 def isvalid_zero_or_greater(value):
     if int(value) >= 0:
         return True
-    else:
-        return False
+    return False
 
 
 def safe_int(n):
@@ -470,7 +470,6 @@ def validate_loan_application(intent_request, slots):
 
     confirmation_status = intent_request['sessionState']['intent']['confirmationState']
     session_attributes = intent_request['sessionState'].get("sessionAttributes") or {}
-    intent = intent_request['sessionState']['intent']
     active_contexts = {}
 
     if username is not None:
@@ -492,28 +491,30 @@ def validate_loan_application(intent_request, slots):
             )
 
     if loan_value is not None:
-        if not isvalid_zero_or_greater(loan_value):
-            return build_validation_result(False, 'LoanValue', 'Please enter a value greater than $0.')
+        if loan_value.isnumeric():
+            if not isvalid_zero_or_greater(loan_value):
+                return build_validation_result(False, 'LoanValue', 'Please enter a value greater than $0.')
         else:
-            prompt = intent_request['inputTranscript']
-            message = invoke_fm(intent_request)
-            reply = message + " What is your desired loan amount?"
+            prompt = "The user was just asked to provide their loan value on a loan application and this was their response: " + intent_request['inputTranscript']
+            message = invoke_fm(prompt)
+            reply = message + " \n\nWhat is your desired loan amount?"
 
             return build_validation_result(False, 'LoanValue', reply)
     else:
         return build_validation_result(
             False,
             'LoanValue',
-            "What is your desired loan amount? In other words, how much are looking to borrow? If you are unsure, please use our Loan Calculator by simply responding 'Loan Calculator.'"
+            "What is your desired loan amount? In other words, how much are looking to borrow?"
         )
 
     if monthly_income is not None:
-        if not isvalid_zero_or_greater(monthly_income):
-            return build_validation_result(False, 'MonthlyIncome', 'Monthly income amount must be greater than $0. Please try again.')
+        if monthly_income.isnumeric():
+            if not isvalid_zero_or_greater(monthly_income):
+                return build_validation_result(False, 'MonthlyIncome', 'Monthly income amount must be greater than $0. Please try again.')
         else:
-            prompt = intent_request['inputTranscript']
-            message = invoke_fm(intent_request)
-            reply = message + " What is your monthly income?"
+            prompt = "The user was just asked to provide their monthly income on a loan application and this was their response: " + intent_request['inputTranscript']
+            message = invoke_fm(prompt)
+            reply = message + " \n\nWhat is your monthly income?"
 
             return build_validation_result(False, 'MonthlyIncome', reply)
     else:
@@ -525,11 +526,9 @@ def validate_loan_application(intent_request, slots):
 
     if work_history is not None:
         if not isvalid_yes_or_no(work_history):
-            return build_validation_result(False, 'WorkHistory', "I am sorry; we did not understand that. Please answer 'Yes' or 'No'")
-        else:
-            prompt = intent_request['inputTranscript']
-            message = invoke_fm(intent_request)
-            reply = message + " Do you have a two-year continuous work history (Yes/No)?"
+            prompt = "The user was just asked to confirm their continuous two year work history on a loan application and this was their response: " + intent_request['inputTranscript']
+            message = invoke_fm(prompt)
+            reply = message + " \n\nDo you have a two-year continuous work history (Yes/No)?"
 
             return build_validation_result(False, 'WorkHistory', reply)
     else:
@@ -540,13 +539,13 @@ def validate_loan_application(intent_request, slots):
         )
 
     if credit_score is not None:
-        if credit_score.isdigit():
+        if credit_score.isnumeric():
             if not isvalid_credit_score(credit_score):
                 return build_validation_result(False, 'CreditScore', 'Credit score entries must be between 300 and 850. Please enter a valid credit score.')
         else:
-            prompt = intent_request['inputTranscript']
-            message = invoke_fm(intent_request)
-            reply = message + " What do you think your current credit score is?"
+            prompt = "The user was just asked to provide their credit score on a loan application and this was their response: " + intent_request['inputTranscript']
+            message = invoke_fm(prompt)
+            reply = message + " \n\nWhat do you think your current credit score is?"
 
             return build_validation_result(False, 'CreditScore', reply)
     else:
@@ -557,12 +556,13 @@ def validate_loan_application(intent_request, slots):
         )
 
     if housing_expense is not None:
-        if not isvalid_zero_or_greater(housing_expense):
-            return build_validation_result(False, 'HousingExpense', 'Your housing expense must be a value greater than or equal to $0. Please try again.')
+        if housing_expense.isnumeric():
+            if not isvalid_zero_or_greater(housing_expense):
+                return build_validation_result(False, 'HousingExpense', 'Your housing expense must be a value greater than or equal to $0. Please try again.')
         else:
-            prompt = intent_request['inputTranscript']
-            message = invoke_fm(intent_request)
-            reply = message + " How much are you currently paying for housing each month?"
+            prompt = "The user was just asked to provide their monthly housing expense on a loan application and this was their response: " + intent_request['inputTranscript']
+            message = invoke_fm(prompt)
+            reply = message + " \n\nHow much are you currently paying for housing each month?"
 
             return build_validation_result(False, 'HousingExpense', reply)
     else:
@@ -573,12 +573,13 @@ def validate_loan_application(intent_request, slots):
         )
 
     if debt_amount is not None:
-        if not isvalid_zero_or_greater(debt_amount):
-            return build_validation_result(False, 'DebtAmount', 'Your debt amount must be a value greater than or equal to $0. Please try again.')
+        if debt_amount.isnumeric():
+            if not isvalid_zero_or_greater(debt_amount):
+                return build_validation_result(False, 'DebtAmount', 'Your debt amount must be a value greater than or equal to $0. Please try again.')
         else:
-            prompt = intent_request['inputTranscript']
-            message = invoke_fm(intent_request)
-            reply = message + " What is your estimated credit card or student loan debt?"
+            prompt = "The user was just asked to provide their monthly debt amount on a loan application and this was their response: " + intent_request['inputTranscript']
+            message = invoke_fm(prompt)
+            reply = message + " \n\nWhat is your estimated credit card or student loan debt?"
 
             return build_validation_result(False, 'DebtAmount', reply)
     else:
@@ -589,12 +590,13 @@ def validate_loan_application(intent_request, slots):
         )
 
     if down_payment is not None:
-        if not isvalid_zero_or_greater(down_payment):
-            return build_validation_result(False, 'DownPayment', 'Your estimate down payment must be a value greater than or equal to $0. Please try again.')
+        if down_payment.isnumeric():
+            if not isvalid_zero_or_greater(down_payment):
+                return build_validation_result(False, 'DownPayment', 'Your estimate down payment must be a value greater than or equal to $0. Please try again.')
         else:
-            prompt = intent_request['inputTranscript']
-            message = invoke_fm(intent_request)
-            reply = message + " What do you have saved for a down payment?"
+            prompt = "The user was just asked to provide their estimated down payment on a loan application and this was their response: " + intent_request['inputTranscript']
+            message = invoke_fm(prompt)
+            reply = message + " \n\nWhat do you have saved for a down payment?"
 
             return build_validation_result(False, 'DownPayment', reply)
     else:
@@ -606,11 +608,9 @@ def validate_loan_application(intent_request, slots):
 
     if coborrow is not None:
         if not isvalid_yes_or_no(coborrow):
-            return build_validation_result(False, 'Coborrow', "I am sorry; we did not understand that. Please answer 'Yes' or 'No'")
-        else:
-            prompt = intent_request['inputTranscript']
-            message = invoke_fm(intent_request)
-            reply = message + " Do you have a co-borrower (Yes/No)?"
+            prompt = "The user was just asked to confirm if they will have a co-borrow on a loan application and this was their response: " + intent_request['inputTranscript']
+            message = invoke_fm(prompt)
+            reply = message + " \n\nDo you have a co-borrower (Yes/No)?"
 
             return build_validation_result(False, 'Coborrow', reply)
     else:
@@ -622,16 +622,15 @@ def validate_loan_application(intent_request, slots):
 
     if closing_date is not None:
         if not isvalid_date(closing_date):
-            return build_validation_result(False, 'ClosingDate', 'I did not understand your closing date.  When would you like to close?')
-        if datetime.datetime.strptime(closing_date, '%Y-%m-%d').date() <= datetime.date.today():
-            return build_validation_result(False, 'ClosingDate', 'Closing dates must be scheduled at least one day in advance.  Please try a different date.')
-        else:
-            prompt = intent_request['inputTranscript']
-            message = invoke_fm(intent_request)
-            reply = message + " When are you looking to close?"
+            prompt = "The user was just asked to provide their real estate closing date on a loan application and this was their response: " + intent_request['inputTranscript']
+            message = invoke_fm(prompt)
+            reply = message + " \n\nWhen are you looking to close?"
 
-            return build_validation_result(False, 'ClosingDate', reply)        
+            return build_validation_result(False, 'ClosingDate', reply)  
+        #if datetime.datetime.strptime(closing_date, '%Y-%m-%d').date() <= datetime.date.today():
+        #    return build_validation_result(False, 'ClosingDate', 'Closing dates must be scheduled at least one day in advance.  Please try a different date.')   
     else:
+        print("## ClosingDate")
         return build_validation_result(
             False,
             'ClosingDate',
@@ -667,26 +666,27 @@ def loan_application(intent_request):
     active_contexts = {}
     
     if intent_request['invocationSource'] == 'DialogCodeHook':
-        # Validate any slots which have been specified.  If any are invalid, re-elicit for their value
+
+        # Validate any slots which have been specified. If any are invalid, re-elicit for their value
         validation_result = validate_loan_application(intent_request, intent_request['sessionState']['intent']['slots'])
-        if not validation_result['isValid']:
-            if validation_result['violatedSlot'] == 'CreditScore' and confirmation_status == 'Denied':
-                print("Invalid credit score")
-                validation_result['violatedSlot'] = 'UserName'
-                intent['slots'] = {}
-            slots[validation_result['violatedSlot']] = None
-            return elicit_slot(
-                session_attributes,
-                active_contexts,
-                intent,
-                validation_result['violatedSlot'],
-                validation_result['message']
-            )  
+        print("LOAN APPLICATION - validation_result = " + str(validation_result))
+        if 'isValid' in validation_result:
+            if validation_result['isValid'] == False:   
+                if validation_result['violatedSlot'] == 'CreditScore' and confirmation_status == 'Denied':
+                    print("Invalid credit score")
+                    validation_result['violatedSlot'] = 'UserName'
+                    intent['slots'] = {}
+                slots[validation_result['violatedSlot']] = None
+                return elicit_slot(
+                    session_attributes,
+                    active_contexts,
+                    intent,
+                    validation_result['violatedSlot'],
+                    validation_result['message']
+                )  
 
     if username and monthly_income:
         application = {
-            'ApplicationType': 'Loan',
-            'Username': username,
             'LoanValue': loan_value,
             'MonthlyIncome': monthly_income,
             'CreditScore': credit_score,
@@ -699,9 +699,12 @@ def loan_application(intent_request):
         # Write the JSON document to DynamoDB
         loan_application_table = dynamodb.Table(loan_application_table_name)
 
+        print("DYNAMODB username = " + str(username))
+
         response = loan_application_table.put_item(
             Item={
-                'userId': username,
+                'userName': username,
+                'planName': 'Loan',
                 'document': application_string
             }
         )
@@ -718,7 +721,7 @@ def loan_application(intent_request):
             intent['confirmationState']="Confirmed"
             intent['state']="Fulfilled"
 
-            s3_client.download_file('omni-lex-artifacts', 'Mortgage-Loan-Application.pdf', '/tmp/Mortgage-Loan-Application.pdf')
+            s3_client.download_file(s3_artifact_bucket, 'agent/assets/Mortgage-Loan-Application.pdf', '/tmp/Mortgage-Loan-Application.pdf')
 
             reader = PdfReader('/tmp/Mortgage-Loan-Application.pdf')
             writer = PdfWriter()
@@ -743,13 +746,13 @@ def loan_application(intent_request):
             with open('/tmp/Mortgage-Loan-Application.pdf', "wb") as output_stream:
                 writer.write(output_stream)
                 
-            s3_client.upload_file('/tmp/Mortgage-Loan-Application.pdf', 'omni-lex-artifacts', 'Mortgage-Loan-Application-Completed.pdf')
+            s3_client.upload_file('/tmp/Mortgage-Loan-Application.pdf', s3_artifact_bucket, 'agent/assets/Mortgage-Loan-Application-Completed.pdf')
 
             # Create loan application doc in S3
         URLs=[]
 
         # create_presigned_url(bucket_name, object_name, expiration=600):
-        URLs.append(create_presigned_url('omni-lex-artifacts','Mortgage-Loan-Application-Completed.pdf',3600))
+        URLs.append(create_presigned_url(s3_artifact_bucket,'agent/assets/Mortgage-Loan-Application-Completed.pdf',3600))
         
         mortgage_app = 'Your loan application is nearly complete! Please follow the link for the last few bits of information: ' + URLs[0]
 
@@ -775,16 +778,15 @@ def loan_calculator(intent_request):
     )
 
 
-def invoke_fm(intent_request):
+def invoke_fm(prompt):
     """
     Invokes Foundational Model endpoint hosted on Amazon Bedrock and parses the response.
     """
-    prompt = intent_request['inputTranscript']
     chat = Chat(prompt)
     llm = Bedrock(
-        model_id="anthropic.claude-instant-v1"
+        model_id="anthropic.claude-v2" # "anthropic.claude-instant-v1"
     )  
-    llm.model_kwargs = {'max_tokens_to_sample': 200}
+    llm.model_kwargs = {'max_tokens_to_sample': 350}
     lex_agent = FSIAgent(llm, chat.memory)
 
     try:
@@ -809,7 +811,8 @@ def genai_intent(intent_request):
     session_attributes = intent_request['sessionState'].get("sessionAttributes") or {}
     
     if intent_request['invocationSource'] == 'DialogCodeHook':
-        output = invoke_fm(intent_request)
+        prompt = intent_request['inputTranscript']
+        output = invoke_fm(prompt)
         return elicit_intent(intent_request, session_attributes, output)
 
 
