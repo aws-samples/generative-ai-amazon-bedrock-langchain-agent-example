@@ -1,14 +1,20 @@
 from langchain.agents.tools import Tool
 from langchain.agents import load_tools
-from kendra_index_retriever import KendraIndexRetriever
+#from kendra_index_retriever import KendraIndexRetriever
+from langchain.retrievers import AmazonKendraRetriever
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from langchain.llms.bedrock import Bedrock
-
+#from langchain.chat_models import BedrockChat
+import boto3
 import requests
 import os
+import warnings
+#warnings.filterwarnings('ignore')
 
-kendra_index_id = os.environ['KENDRA_INDEX_ID']
+# Instantiate boto3 clients and resources
+boto3_session = boto3.Session(region_name=os.environ['AWS_REGION'])
+bedrock_client = boto3_session.client(service_name="bedrock-runtime")
 
 class Tools():
 
@@ -26,17 +32,18 @@ class Tools():
     def build_chain(self):
         print("Building Chain")
         region = os.environ['AWS_REGION']
+        kendra_index_id = os.environ['KENDRA_INDEX_ID']
 
-        llm = Bedrock(
-            model_id="anthropic.claude-v2" # "anthropic.claude-instant-v1"
-        )  
+        llm = Bedrock(client=bedrock_client, model_id="anthropic.claude-v2", region_name=os.environ['AWS_REGION']) # "anthropic.claude-instant-v1"
+        # llm = BedrockChat(client=bedrock_client, model_id="anthropic.claude-v2", region_name=os.environ['AWS_REGION'])
         llm.model_kwargs = {'max_tokens_to_sample': 350} 
 
-        retriever = KendraIndexRetriever(
+        retriever = AmazonKendraRetriever(index_id=kendra_index_id)
+        '''retriever = KendraIndexRetriever(
             kendraindex=kendra_index_id, 
             awsregion=region, 
             return_source_documents=True
-        )
+        )'''
 
         prompt_template = """
         \n\nHuman: The following is a friendly conversation between a human and an AI. 
@@ -74,7 +81,6 @@ class Tools():
     def chain_tool(self, input):
         chain = self.build_chain()
         result = self.run_chain(chain, input)
-
 
         if 'source_documents' in result:
             print('Sources:')

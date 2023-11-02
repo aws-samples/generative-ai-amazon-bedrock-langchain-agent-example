@@ -30,11 +30,8 @@ Parameters:
     Description: S3 Key for Lambda Handler
     Type: String
     Default: /agent/lambda/agent-handler/agent_deployment_package.zip
-  BedrockLangChainLayerArn:
-    Description: ARN for Bedrock LangChain Lambda layer
-    Type: String
-  PyPDFLayerArn:
-    Description: ARN for PyPDF Lambda layer
+  BedrockLangChainPyPDFLayerArn:
+    Description: ARN for Bedrock LangChain PyPDF Lambda layer
     Type: String
   LexBotS3Key:
     Description: S3 key for Lex chatbot deployment package. 
@@ -178,13 +175,12 @@ Resources:
       Code:
         S3Bucket: !Ref S3ArtifactBucket
         S3Key: !Ref LambdaHandlerS3Key
-      Runtime: python3.9
+      Runtime: python3.11
       MemorySize: 512
       Timeout: 30
       Handler: lambda_function.handler
       Layers:
-        - !Ref BedrockLangChainLayerArn
-        - !Ref PyPDFLayerArn
+        - !Ref BedrockLangChainPyPDFLayerArn
       Role: !GetAtt AgentHandlerServiceRole.Arn
       Architectures:
         - x86_64
@@ -394,12 +390,15 @@ Resources:
       RoleArn: !GetAtt KendraDataSourceRole.Arn
       DataSourceConfiguration:
         WebCrawlerConfiguration: 
-          CrawlDepth: 3
-          Urls: 
-            SeedUrlConfiguration:
-              SeedUrls: 
-                - !Ref KendraWebCrawlerUrl
-              WebCrawlerMode: EVERYTHING
+            CrawlDepth: 3
+            MaxContentSizePerPageInMegaBytes: 50
+            MaxLinksPerPage: 20
+            MaxUrlsPerMinuteCrawlRate: 100
+            Urls: 
+              SeedUrlConfiguration:
+                SeedUrls: 
+                  - !Ref KendraWebCrawlerUrl
+                WebCrawlerMode: SUBDOMAINS
 
   LexBotRole:
     Type: AWS::IAM::Role
@@ -436,8 +435,8 @@ Resources:
           S3ObjectKey: !Ref LexBotS3Key
         DataPrivacy: 
           ChildDirected: false
-        Description: 'Financial Service Agent'
-        IdleSessionTTLInSeconds: 120
+        Description: 'Financial Services Agent'
+        IdleSessionTTLInSeconds: 900
         RoleArn: !GetAtt LexBotRole.Arn
 
 

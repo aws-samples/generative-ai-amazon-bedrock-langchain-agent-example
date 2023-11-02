@@ -28,7 +28,7 @@ class Chat():
         print("Setting Chat History")
         _id = self.user_id + "-" + str(self.chat_index)
         self.message_history = DynamoDBChatMessageHistory(table_name=conversation_table_name, session_id=_id)
-        self.memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=self.message_history, input_key="input", output_key="output", return_messages=True)
+        self.memory = ConversationBufferMemory(ai_prefix="Assistant", memory_key="chat_history", chat_memory=self.message_history, input_key="input", output_key="output", return_messages=True)
 
 
     def get_chat_index(self):

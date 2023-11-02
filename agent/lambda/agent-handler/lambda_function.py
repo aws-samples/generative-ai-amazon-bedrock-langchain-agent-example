@@ -4,11 +4,15 @@ import time
 import os
 import dateutil.parser
 import logging
+import warnings
+#warnings.filterwarnings('ignore')
 
 import boto3
 from boto3.dynamodb.conditions import Key
 
 from langchain.llms.bedrock import Bedrock
+from langchain.chat_models import BedrockChat
+from langchain.schema import HumanMessage
 
 from chat import Chat
 from fsi_agent import FSIAgent
@@ -21,9 +25,11 @@ user_accounts_table_name = os.environ['USER_EXISTING_ACCOUNTS_TABLE']
 s3_artifact_bucket = os.environ['S3_ARTIFACT_BUCKET_NAME']
 
 # Instantiate boto3 clients and resources
+boto3_session = boto3.Session(region_name=os.environ['AWS_REGION'])
 dynamodb = boto3.resource('dynamodb',region_name=os.environ['AWS_REGION'])
 s3_client = boto3.client('s3',region_name=os.environ['AWS_REGION'],config=boto3.session.Config(signature_version='s3v4',))
 s3_object = boto3.resource('s3')
+bedrock_client = boto3_session.client(service_name="bedrock-runtime")
 
 
 # --- Lex v2 request/response helpers (https://docs.aws.amazon.com/lexv2/latest/dg/lambda-response-format.html) ---
@@ -782,25 +788,52 @@ def invoke_fm(prompt):
     """
     Invokes Foundational Model endpoint hosted on Amazon Bedrock and parses the response.
     """
+    
     chat = Chat(prompt)
-    llm = Bedrock(
-        model_id="anthropic.claude-v2" # "anthropic.claude-instant-v1"
-    )  
+    # chat = BedrockChat(client=bedrock_client, model_id="anthropic.claude-v2", region_name=os.environ['AWS_REGION'])
+    # print("BEDROCK CHAT = " + str(chat))
+    llm = Bedrock(client=bedrock_client, model_id="anthropic.claude-instant-v1", region_name=os.environ['AWS_REGION']) # "anthropic.claude-v2 "
     llm.model_kwargs = {'max_tokens_to_sample': 350}
     lex_agent = FSIAgent(llm, chat.memory)
+    formatted_prompt = "\n\nHuman: " + prompt + " \n\nAssistant:"
+    print("FORMATTED PROMPT = " + str(formatted_prompt))
 
     try:
-        message = lex_agent.run(input=prompt)
+        print("Trying Agent Run")
+        message = lex_agent.run(input=formatted_prompt)
+        print("Agent Run Output = " + str(message))
     except ValueError as e:
         message = str(e)
-        if not message.startswith("Could not parse LLM output: `"):
+        print("ERROR MESSAGE = " + str(message))
+        if not message.startswith("Could not parse LLM output:"):
+            raise e
+        message = message.removeprefix("Could not parse LLM output: `").removesuffix("`")
+
+    print("lambda_function NO ERROR CATCH")
+    return message
+
+
+    '''
+    output = message['output']
+    chat = BedrockChat(client=bedrock_client, model_id="anthropic.claude-v2", region_name=os.environ['AWS_REGION'])
+    messages = [
+        HumanMessage(
+            content=prompt
+        )
+    ]
+
+    try:
+        output = chat(messages)
+    except ValueError as e:
+        message = str(e)
+        print("ERROR MESSAGE = " + str(message))
+        if not message.startswith("Could not parse LLM output:"):
             raise e
         message = message.removeprefix("Could not parse LLM output: `").removesuffix("`")
         return message
-
-    output = message['output']
-
+        
     return output
+        '''
 
 
 def genai_intent(intent_request):
