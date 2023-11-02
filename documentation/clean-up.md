@@ -1,7 +1,7 @@
 # Clean up
 ---
 
-You must clean up provisioned resources to avoid charges in your AWS account.
+To avoid charges in your AWS account, please clean up the solution's provisioned resources.
 
 ## Step 1: Revoke GitHub Personal Access Token
 
@@ -15,7 +15,7 @@ The following commands use the default stack name. If you customized the stack n
 ./delete-stack.sh
 ```
 
-#### Deployment Automation Script
+#### Resource Deletion Automation Script
 The [delete-stack.sh](../shell/delete-stack.sh) shell script deletes the resources that were originally provisioned from the [GenAI-FSI-Agent.yml](../cfn/GenAI-FSI-Agent.yml) CloudFormation stack.
 
 ```sh
@@ -23,13 +23,21 @@ The [delete-stack.sh](../shell/delete-stack.sh) shell script deletes the resourc
 # chmod u+x delete-stack.sh
 # ./delete-stack.sh
 
+echo "Deleting Kendra Data Source: $KENDRA_WEBCRAWLER_DATA_SOURCE_ID"
+
 aws kendra delete-data-source --id $KENDRA_WEBCRAWLER_DATA_SOURCE_ID --index-id $KENDRA_INDEX_ID
+
+echo "Emptying and Deleting S3 Bucket: $S3_ARTIFACT_BUCKET_NAME"
 
 aws s3 rm s3://${S3_ARTIFACT_BUCKET_NAME} --recursive
 aws s3 rb s3://${S3_ARTIFACT_BUCKET_NAME}
 
+echo "Deleting CloudFormation Stack: $STACK_NAME"
+
 aws cloudformation delete-stack --stack-name $STACK_NAME
 aws cloudformation wait stack-delete-complete --stack-name $STACK_NAME
+
+echo "Deleting Secrets Manager Secret: $GITHUB_TOKEN_SECRET_NAME"
 
 aws secretsmanager delete-secret --secret-id $GITHUB_TOKEN_SECRET_NAME
 ```

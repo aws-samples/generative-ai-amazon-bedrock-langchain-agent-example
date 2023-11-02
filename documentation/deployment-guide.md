@@ -54,9 +54,7 @@ The [create-stack.sh](../shell/create-stack.sh) shell script allows for automate
 5. Two Lambda functions:
 	- Agent Handler: Contains the LangChain Conversational Agent logic that can intelligently employ a variety of tools based on user input.
 	- Data Loader: Loads example customer account data into _UserExistingAccountsTable_ and is invoked as a custom CloudFormation resource during stack creation.
-6. Two Lambda layers:
-	- Amazon Bedrock LangChain: Supplies LangChain's LLM library with an Amazon Bedrock hosted model as the underlying LLM.
-	- PyPDF: Serves as an open-source PDF library for creating and modifying PDF files.
+6. AWS Lambda layer built from [requirements.txt](../agent/lambda-layers/requirements.txt). Supplies LangChain's LLM library with an Amazon Bedrock hosted model as the underlying LLM. Also serves PyPDF as an open-source PDF library for creating and modifying PDF files.
 7. Amazon Kendra Index: Provides a searchable index of customer proprietary information, including documents, FAQs, knowledge bases, manuals, websites, and more.
 8. Two Kendra Data Sources:
 	- S3: Hosts an example customer [FAQ document](../agent/assets/Octank-Financial-FAQs.csv).
@@ -79,7 +77,7 @@ Next, set your Amplify Repository and GitHub PAT environment variables created d
 export AMPLIFY_REPOSITORY=<YOUR-FORKED-REPOSITORY-URL> # Forked repository URL from Pre-Deployment (Exclude '.git' from repository URL)
 export GITHUB_PAT=<YOUR-GITHUB-PAT> # GitHub PAT copied from Pre-Deployment
 export STACK_NAME=<YOUR-STACK-NAME> # Stack name must be lower case for S3 bucket naming convention
-export KENDRA_WEBCRAWLER_URL=<YOUR-WEBSITE-ROOT-DOMAIN> # Public or internal HTTPS website for Kendra to index via Web Crawler (e.g., https://www.nerdwallet.com) - Please see https://docs.aws.amazon.com/kendra/latest/dg/data-source-web-crawler.html
+export KENDRA_WEBCRAWLER_URL=<YOUR-WEBSITE-ROOT-DOMAIN> # Public or internal HTTPS website for Kendra to index via Web Crawler (e.g., https://www.investopedia.com/) - Please see https://docs.aws.amazon.com/kendra/latest/dg/data-source-web-crawler.html
 ```
 
 Finally, execute the shell script to deploy the [GenAI-FSI-Agent.yml](../cfn/GenAI-FSI-Agent.yml) CloudFormation stack.
@@ -92,6 +90,11 @@ source ./create-stack.sh
 The above ```source ./create-stack.sh``` shell command executes the following AWS CLI commands to deploy the solution stack:
 
 ```sh
+# If not already forked, fork the remote repository (https://github.com/aws-samples/generative-ai-amazon-bedrock-langchain-agent-example) and change working directory to shell folder
+# cd generative-ai-amazon-bedrock-langchain-agent-example/shell/
+# chmod u+x create-stack.sh
+# source ./create-stack.sh
+
 export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 export S3_ARTIFACT_BUCKET_NAME=$STACK_NAME-$ACCOUNT_ID
 export DATA_LOADER_S3_KEY="agent/lambda/data-loader/loader_deployment_package.zip"
@@ -99,22 +102,14 @@ export LAMBDA_HANDLER_S3_KEY="agent/lambda/agent-handler/agent_deployment_packag
 export LEX_BOT_S3_KEY="agent/bot/lex.zip"
 
 aws s3 mb s3://${S3_ARTIFACT_BUCKET_NAME} --region us-east-1
-aws s3 cp ../agent/ s3://${S3_ARTIFACT_BUCKET_NAME}/agent/ --recursive
+aws s3 cp ../agent/ s3://${S3_ARTIFACT_BUCKET_NAME}/agent/ --recursive --exclude ".DS_Store"
 
 export BEDROCK_LANGCHAIN_LAYER_ARN=$(aws lambda publish-layer-version \
-    --layer-name bedrock-langchain \
-    --description "Bedrock LangChain layer" \
+    --layer-name bedrock-langchain-pypdf \
+    --description "Bedrock LangChain PyPDF layer" \
     --license-info "MIT" \
-    --content S3Bucket=${S3_ARTIFACT_BUCKET_NAME},S3Key=agent/lambda-layers/bedrock-langchain.zip \
-    --compatible-runtimes python3.9 \
-    --query LayerVersionArn --output text)
-
-export PYPDF_LAYER_ARN=$(aws lambda publish-layer-version \
-    --layer-name pypdf \
-    --description "PyPDF layer" \
-    --license-info "MIT" \
-    --content S3Bucket=${S3_ARTIFACT_BUCKET_NAME},S3Key=agent/lambda-layers/pypdf.zip \
-    --compatible-runtimes python3.9 \
+    --content S3Bucket=${S3_ARTIFACT_BUCKET_NAME},S3Key=agent/lambda-layers/bedrock-langchain-pypdf.zip \
+    --compatible-runtimes python3.11 \
     --query LayerVersionArn --output text)
 
 export GITHUB_TOKEN_SECRET_NAME=$(aws secretsmanager create-secret --name $STACK_NAME-git-pat \
@@ -130,8 +125,7 @@ ParameterKey=LambdaHandlerS3Key,ParameterValue=${LAMBDA_HANDLER_S3_KEY} \
 ParameterKey=LexBotS3Key,ParameterValue=${LEX_BOT_S3_KEY} \
 ParameterKey=GitHubTokenSecretName,ParameterValue=${GITHUB_TOKEN_SECRET_NAME} \
 ParameterKey=KendraWebCrawlerUrl,ParameterValue=${KENDRA_WEBCRAWLER_URL} \
-ParameterKey=BedrockLangChainLayerArn,ParameterValue=${BEDROCK_LANGCHAIN_LAYER_ARN} \
-ParameterKey=PyPDFLayerArn,ParameterValue=${PYPDF_LAYER_ARN} \
+ParameterKey=BedrockLangChainPyPDFLayerArn,ParameterValue=${BEDROCK_LANGCHAIN_LAYER_ARN} \
 ParameterKey=AmplifyRepository,ParameterValue=${AMPLIFY_REPOSITORY} \
 --capabilities CAPABILITY_NAMED_IAM
 
