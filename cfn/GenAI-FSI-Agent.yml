@@ -379,6 +379,8 @@ Resources:
       DataSourceConfiguration:
         S3Configuration:
           BucketName: !Ref S3ArtifactBucket
+          InclusionPatterns: 
+            - "agent/assets/*.csv"
 
   KendraWebCrawler:
     DependsOn: KendraIndex
