@@ -1,7 +1,6 @@
 from boto3.dynamodb.types import TypeSerializer
 from langchain.memory.chat_message_histories import DynamoDBChatMessageHistory
 from langchain.memory import ConversationBufferMemory
-
 from datetime import datetime
 import json
 import boto3

@@ -4,19 +4,13 @@ import time
 import os
 import dateutil.parser
 import logging
-import warnings
-#warnings.filterwarnings('ignore')
-
 import boto3
 from boto3.dynamodb.conditions import Key
-
 from langchain.llms.bedrock import Bedrock
 from langchain.chat_models import BedrockChat
 from langchain.schema import HumanMessage
-
 from chat import Chat
 from fsi_agent import FSIAgent
-
 from pypdf import PdfReader, PdfWriter
 
 # Create reference to DynamoDB tables
@@ -754,7 +748,7 @@ def loan_application(intent_request):
                 
             s3_client.upload_file('/tmp/Mortgage-Loan-Application.pdf', s3_artifact_bucket, 'agent/assets/Mortgage-Loan-Application-Completed.pdf')
 
-            # Create loan application doc in S3
+        # Create loan application doc in S3
         URLs=[]
 
         # create_presigned_url(bucket_name, object_name, expiration=600):
@@ -788,52 +782,21 @@ def invoke_fm(prompt):
     """
     Invokes Foundational Model endpoint hosted on Amazon Bedrock and parses the response.
     """
-    
     chat = Chat(prompt)
-    # chat = BedrockChat(client=bedrock_client, model_id="anthropic.claude-v2", region_name=os.environ['AWS_REGION'])
-    # print("BEDROCK CHAT = " + str(chat))
     llm = Bedrock(client=bedrock_client, model_id="anthropic.claude-instant-v1", region_name=os.environ['AWS_REGION']) # "anthropic.claude-v2 "
     llm.model_kwargs = {'max_tokens_to_sample': 350}
     lex_agent = FSIAgent(llm, chat.memory)
     formatted_prompt = "\n\nHuman: " + prompt + " \n\nAssistant:"
-    print("FORMATTED PROMPT = " + str(formatted_prompt))
 
     try:
-        print("Trying Agent Run")
         message = lex_agent.run(input=formatted_prompt)
-        print("Agent Run Output = " + str(message))
     except ValueError as e:
         message = str(e)
-        print("ERROR MESSAGE = " + str(message))
         if not message.startswith("Could not parse LLM output:"):
             raise e
         message = message.removeprefix("Could not parse LLM output: `").removesuffix("`")
 
-    print("lambda_function NO ERROR CATCH")
     return message
-
-
-    '''
-    output = message['output']
-    chat = BedrockChat(client=bedrock_client, model_id="anthropic.claude-v2", region_name=os.environ['AWS_REGION'])
-    messages = [
-        HumanMessage(
-            content=prompt
-        )
-    ]
-
-    try:
-        output = chat(messages)
-    except ValueError as e:
-        message = str(e)
-        print("ERROR MESSAGE = " + str(message))
-        if not message.startswith("Could not parse LLM output:"):
-            raise e
-        message = message.removeprefix("Could not parse LLM output: `").removesuffix("`")
-        return message
-        
-    return output
-        '''
 
 
 def genai_intent(intent_request):
