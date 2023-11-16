@@ -77,5 +77,3 @@ export AMPLIFY_BRANCH=$(aws cloudformation describe-stacks \
     --query 'Stacks[0].Outputs[?OutputKey==`AmplifyBranch`].OutputValue' --output text)
 
 aws amplify start-job --app-id $AMPLIFY_APP_ID --branch-name $AMPLIFY_BRANCH --job-type 'RELEASE'
-
-
