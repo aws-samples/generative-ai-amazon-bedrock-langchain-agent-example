@@ -22,13 +22,11 @@ class Chat():
         self.set_chat_index()
         self.set_memory()
 
-
     def set_memory(self):
         print("Setting Chat History")
         _id = self.user_id + "-" + str(self.chat_index)
         self.message_history = DynamoDBChatMessageHistory(table_name=conversation_table_name, session_id=_id)
         self.memory = ConversationBufferMemory(ai_prefix="Assistant", memory_key="chat_history", chat_memory=self.message_history, input_key="input", output_key="output", return_messages=True)
-
 
     def get_chat_index(self):
         key = {'id':self.user_id}
@@ -36,7 +34,6 @@ class Chat():
         if 'Item' in chat_index:
             return int(chat_index['Item']['chat_index']['N'])
         return 0
-
 
     def increment_chat_index(self):
         self.chat_index += 1
@@ -47,14 +44,11 @@ class Chat():
         }
         dynamodb.put_item(TableName=chat_index_table_name, Item=ts.serialize(input)['M'])
 
-
     def create_new_chat(self):
         self.increment_chat_index()
 
-
     def set_user_id(self, event):
         self.user_id = "Example User"
-
 
     def set_chat_index(self):
         self.chat_index = self.get_chat_index()

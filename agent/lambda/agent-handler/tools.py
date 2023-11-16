@@ -24,7 +24,6 @@ class Tools():
             )
         ]
 
-
     def build_chain(self):
         print("Building Chain")
         region = os.environ['AWS_REGION']
@@ -57,7 +56,6 @@ class Tools():
           return_source_documents=True
         )
 
-
     def run_chain(self, chain, prompt: str, history=[]):
         print("Running Chain")
         result = chain(prompt)
@@ -66,7 +64,6 @@ class Tools():
             "answer": result['result'],
             "source_documents": result['source_documents']
         }
-
 
     def chain_tool(self, input):
         chain = self.build_chain()
@@ -78,6 +75,5 @@ class Tools():
               print(d.metadata['source'])
 
         return result
-
 
 tools = Tools().tools

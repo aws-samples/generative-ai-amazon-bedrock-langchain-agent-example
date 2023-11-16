@@ -25,9 +25,7 @@ s3_client = boto3.client('s3',region_name=os.environ['AWS_REGION'],config=boto3.
 s3_object = boto3.resource('s3')
 bedrock_client = boto3_session.client(service_name="bedrock-runtime")
 
-
 # --- Lex v2 request/response helpers (https://docs.aws.amazon.com/lexv2/latest/dg/lambda-response-format.html) ---
-
 
 def elicit_slot(session_attributes, active_contexts, intent, slot_to_elicit, message):
     response = {
@@ -55,7 +53,6 @@ def elicit_slot(session_attributes, active_contexts, intent, slot_to_elicit, mes
 
     return response
 
-
 def confirm_intent(active_contexts, session_attributes, intent, message):
     response = {
         'sessionState': {
@@ -69,7 +66,6 @@ def confirm_intent(active_contexts, session_attributes, intent, message):
     }
 
     return response
-
 
 def close(session_attributes, active_contexts, fulfillment_state, intent, message):
     response = {
@@ -92,7 +88,6 @@ def close(session_attributes, active_contexts, fulfillment_state, intent, messag
     }
 
     return response
-
 
 def elicit_intent(intent_request, session_attributes, message):
     response = {
@@ -132,7 +127,6 @@ def elicit_intent(intent_request, session_attributes, message):
 
     return response
 
-
 def delegate(session_attributes, active_contexts, intent, message):
     response = {
         'sessionState': {
@@ -155,7 +149,6 @@ def delegate(session_attributes, active_contexts, intent, message):
 
     return response
 
-
 def initial_message(intent_name):
     response = {
             'sessionState': {
@@ -172,7 +165,6 @@ def initial_message(intent_name):
     }
     
     return response
-
 
 def build_response_card(title, subtitle, options):
     """
@@ -193,7 +185,6 @@ def build_response_card(title, subtitle, options):
         }
     }
 
-
 def build_slot(intent_request, slot_to_build, slot_value):
     intent_request['sessionState']['intent']['slots'][slot_to_build] = {
         'shape': 'Scalar', 'value': 
@@ -203,7 +194,6 @@ def build_slot(intent_request, slot_to_build, slot_value):
         }
     }
 
-
 def build_validation_result(isvalid, violated_slot, message_content):
     print("Build Validation")
     return {
@@ -212,9 +202,7 @@ def build_validation_result(isvalid, violated_slot, message_content):
         'message': message_content
     }
     
-
 # --- Utility helper functions ---
-
 
 def isvalid_date(date):
     try:
@@ -225,30 +213,25 @@ def isvalid_date(date):
         print("DATE PARSER ERROR = " + str(e))
         return False
 
-
 def isvalid_yes_or_no(value):
     if value == 'Yes' or value == 'yes' or value == 'No' or value == 'no':
         return True
     return False
-
 
 def isvalid_credit_score(credit_score):
     if int(credit_score) < 851 and int(credit_score) > 300:
         return True
     return False
 
-
 def isvalid_zero_or_greater(value):
     if int(value) >= 0:
         return True
     return False
 
-
 def safe_int(n):
     if n is not None:
         return int(n)
     return n
-
 
 def create_presigned_url(bucket_name, object_name, expiration=600):
     # Generate a presigned URL for the S3 object
@@ -265,7 +248,6 @@ def create_presigned_url(bucket_name, object_name, expiration=600):
     # The response contains the presigned URL
     return response
 
-
 def try_ex(value):
     """
     Safely access Slots dictionary values.
@@ -280,9 +262,7 @@ def try_ex(value):
     else:
         return None
 
-
 # --- Intent fulfillment functions --- 
-
 
 def isvalid_pin(userName, pin):
     """
@@ -315,7 +295,6 @@ def isvalid_pin(userName, pin):
         print(e)
         return e
 
-
 def isvalid_username(userName):
     """
     Validates the user-provided username exists in the 'user_accounts_table_name' DynamoDB table.
@@ -342,7 +321,6 @@ def isvalid_username(userName):
     except Exception as e:
         print(e)
         return e
-
 
 def validate_pin(intent_request, slots):
     """
@@ -385,7 +363,6 @@ def validate_pin(intent_request, slots):
         )
 
     return {'isValid': True}
-
 
 def verify_identity(intent_request):
     """
@@ -448,7 +425,6 @@ def verify_identity(intent_request):
             except Exception as e:
                 print(e)
                 return e
-
 
 def validate_loan_application(intent_request, slots):
     """
@@ -639,7 +615,6 @@ def validate_loan_application(intent_request, slots):
 
     return {'isValid': True}
 
-
 def loan_application(intent_request):
     """
     Performs dialog management and fulfillment for booking a car.
@@ -762,7 +737,6 @@ def loan_application(intent_request):
             mortgage_app
         )
 
-
 def loan_calculator(intent_request):
     """
     Performs dialog management and fulfillment for calculating loan details.
@@ -776,7 +750,6 @@ def loan_calculator(intent_request):
         session_attributes,
         'This is where you would implement LoanCalculator intent fulfillment.'
     )
-
 
 def invoke_fm(prompt):
     """
@@ -798,7 +771,6 @@ def invoke_fm(prompt):
 
     return message
 
-
 def genai_intent(intent_request):
     """
     Performs dialog management and fulfillment for user utterances that do not match defined intents (i.e., FallbackIntent).
@@ -811,9 +783,7 @@ def genai_intent(intent_request):
         output = invoke_fm(prompt)
         return elicit_intent(intent_request, session_attributes, output)
 
-
 # --- Intents ---
-
 
 def dispatch(intent_request):
     """
@@ -834,9 +804,7 @@ def dispatch(intent_request):
 
     raise Exception('Intent with name ' + intent_name + ' not supported')
         
-
 # --- Main handler ---
-
 
 def handler(event, context):
     """

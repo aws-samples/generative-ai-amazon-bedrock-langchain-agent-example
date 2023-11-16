@@ -9,7 +9,6 @@ PREFIX = "\n\nHuman: You are a Financial Services AI chatbot (Assistant) for a c
  [Source 2: Source Title 2 - Source Link 2], \
  [Source n: Source Title n - Source Link n]. Provide two newline characters between your answer and the sources. By the way, the date is " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S") + ".\n\nAssistant:"
 
-
 FORMAT_INSTRUCTIONS = "\n\nHuman: \n\nAssistant:"
 
 class FSIAgent():
@@ -21,7 +20,6 @@ class FSIAgent():
         self.memory = memory
         self.format_instructions = FORMAT_INSTRUCTIONS
         self.agent = self.create_agent()
-
 
     def create_agent(self):
         fsi_agent = ConversationalAgent.from_llm_and_tools(
@@ -36,7 +34,6 @@ class FSIAgent():
         )
         agent_executor = AgentExecutor.from_agent_and_tools(agent=fsi_agent, tools=tools, verbose=True, memory=self.memory, return_source_documents=True, return_intermediate_steps=True) # , handle_parsing_errors=True
         return agent_executor
-
 
     def run(self, input):
         print("Running FSI Agent with input: " + str(input))
