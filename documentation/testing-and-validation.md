@@ -45,6 +45,14 @@ Resultant Loan Application Document completed through conversational flow:
 
 Multi-channel support functionality can be tested in conjunction with the above assessment measures across Web, SMS, and Voice channels.
 
+> - [Integrating an Amazon Lex V2 bot with a contact center](https://docs.aws.amazon.com/lexv2/latest/dg/contact-center.html)
+> - [Integrating an Amazon Lex V2 bot with Twilio SMS](https://docs.aws.amazon.com/lexv2/latest/dg/deploy-twilio-sms.html)
+> - [Integrating an Amazon Lex V2 bot with Slack](https://docs.aws.amazon.com/lexv2/latest/dg/deploy-slack.html)
+
+# Conclusion
+
+While the demonstrated solution showcases the capabilities of a generative AI Financial Services agent powered by Amazon Bedrock, it is essential to recognize that this solution is not Production-ready. Rather, it serves as an illustrative example for developers aiming to create their personalized conversational agents for diverse applications like virtual workers and customer support systems. A developer’s path to Production would iterate on this sample solution with the following considerations:
+
 ## Security and Privacy
 
 Ensure data security and user privacy throughout the implementation process. Implement appropriate access controls and encryption mechanisms to protect sensitive information. Solutions like the GenerativeAI Financial Services Agent will benefit from data which is not yet available to the underlying LLM, which often means you will want to use your own private data for the biggest jump in capability.
