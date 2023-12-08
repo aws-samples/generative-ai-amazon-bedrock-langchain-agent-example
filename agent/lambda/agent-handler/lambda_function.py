@@ -11,7 +11,8 @@ from langchain.chat_models import BedrockChat
 from langchain.schema import HumanMessage
 from chat import Chat
 from fsi_agent import FSIAgent
-from pypdf import PdfReader, PdfWriter
+import pdfrw
+import difflib
 
 # Create reference to DynamoDB tables
 loan_application_table_name = os.environ['USER_PENDING_ACCOUNTS_TABLE']
@@ -213,10 +214,16 @@ def isvalid_date(date):
         print("DATE PARSER ERROR = " + str(e))
         return False
 
-def isvalid_yes_or_no(value):
-    if value == 'Yes' or value == 'yes' or value == 'No' or value == 'no':
-        return True
-    return False
+def isvalid_yes_or_no(word):
+    # Reference words
+    reference_words = ['yes', 'no', 'yep', 'nope']
+    similarity_threshold = 0.7  # Adjust this threshold as needed
+
+    # Calculate similarity using difflib
+    similarity_scores = [difflib.SequenceMatcher(None, word.lower(), ref_word).ratio() for ref_word in reference_words]
+
+    # Check if the word is close to 'yes' or 'no' based on similarity threshold
+    return any(score >= similarity_threshold for score in similarity_scores)
 
 def isvalid_credit_score(credit_score):
     if int(credit_score) < 851 and int(credit_score) > 300:
@@ -355,7 +362,7 @@ def validate_pin(intent_request, slots):
                 'You have entered an incorrect PIN. Please try again.'.format(pin)
             )
     else:
-        message = "Thank you for choosing Octank Financial, {}. Please confirm your 4-digit PIN before we proceed.".format(username)
+        message = "Thank you for choosing AnyCompany, {}. Please confirm your 4-digit PIN before we proceed.".format(username)
         return build_validation_result(
             False,
             'Pin',
@@ -413,10 +420,10 @@ def verify_identity(intent_request):
                     if item['planName'] == 'mortgage' or item['planName'] == 'Mortgage':
                         message = "Your mortgage account summary includes a ${:,} loan at {}% interest with ${:,} of unpaid principal. Your next payment of ${:,} is scheduled for {}.".format(item['loanAmount'], item['loanInterest'], item['unpaidPrincipal'], item['amountDue'], item['dueDate'])
                     elif item['planName'] == 'Checking' or item['planName'] == 'checking':
-                        message = "I see you have a Savings account with Octank Financial. Your account balance is ${:,} and your next payment \
+                        message = "I see you have a Savings account with AnyCompany. Your account balance is ${:,} and your next payment \
                             amount of ${:,} is scheduled for {}.".format(item['unpaidPrincipal'], item['paymentAmount'], item['dueDate'])
                     elif item['planName'] == 'Loan' or item['planName'] == 'loan':
-                            message = "I see you have a Loan account with Octank Financial. Your account balance is ${:,} and your next payment \
+                            message = "I see you have a Loan account with AnyCompany. Your account balance is ${:,} and your next payment \
                             amount of ${:,} is scheduled for {}.".format(item['unpaidPrincipal'], item['paymentAmount'], item['dueDate'])
                 return elicit_intent(intent_request, session_attributes, 
                     'Thank you for confirming your username and PIN, {}. {}'.format(username, message)
@@ -504,14 +511,14 @@ def validate_loan_application(intent_request, slots):
         if not isvalid_yes_or_no(work_history):
             prompt = "The user was just asked to confirm their continuous two year work history on a loan application and this was their response: " + intent_request['inputTranscript']
             message = invoke_fm(prompt)
-            reply = message + " \n\nDo you have a two-year continuous work history (Yes/No)?"
+            reply = message + " \n\nDo you have a two-year continuous work history?"
 
             return build_validation_result(False, 'WorkHistory', reply)
     else:
         return build_validation_result(
             False,
             'WorkHistory',
-            "Do you have a two-year continuous work history (Yes/No)?"
+            "Do you have a two-year continuous work history?"
         )
 
     if credit_score is not None:
@@ -562,7 +569,7 @@ def validate_loan_application(intent_request, slots):
         return build_validation_result(
             False,
             'DebtAmount',
-            "What is your estimated credit card or student loan debt? Please enter '0' if none."
+            "What is your estimated credit card or student loan debt?"
         )
 
     if down_payment is not None:
@@ -586,14 +593,14 @@ def validate_loan_application(intent_request, slots):
         if not isvalid_yes_or_no(coborrow):
             prompt = "The user was just asked to confirm if they will have a co-borrow on a loan application and this was their response: " + intent_request['inputTranscript']
             message = invoke_fm(prompt)
-            reply = message + " \n\nDo you have a co-borrower (Yes/No)?"
+            reply = message + " \n\nDo you have a co-borrower?"
 
             return build_validation_result(False, 'Coborrow', reply)
     else:
         return build_validation_result(
             False,
             'Coborrow',
-            "Do you have a co-borrower (Yes/No)?"
+            "Do you have a co-borrower?"
         )
 
     if closing_date is not None:
@@ -686,42 +693,54 @@ def loan_application(intent_request):
 
         # Determine if the intent (and current slot settings) has been denied.  The messaging will be different
         # if the user is denying a reservation he initiated or an auto-populated suggestion.
-        if confirmation_status == 'Denied':
-            return delegate(session_attributes, active_contexts, intent, 'Confirm hotel reservation')
-
-        if confirmation_status == 'None':
-            return delegate(session_attributes, active_contexts, intent, 'Confirm hotel reservation')
+        if confirmation_status == 'Denied' or confirmation_status == 'None':
+            return delegate(session_attributes, active_contexts, intent, 'How else can I help you?')
 
         if confirmation_status == 'Confirmed':
             intent['confirmationState']="Confirmed"
             intent['state']="Fulfilled"
 
-            s3_client.download_file(s3_artifact_bucket, 'agent/assets/Mortgage-Loan-Application.pdf', '/tmp/Mortgage-Loan-Application.pdf')
+        s3_client.download_file(s3_artifact_bucket, 'agent/assets/Mortgage-Loan-Application.pdf', '/tmp/Mortgage-Loan-Application.pdf')
 
-            reader = PdfReader('/tmp/Mortgage-Loan-Application.pdf')
-            writer = PdfWriter()
+        print("initializing reader")
+        reader = pdfrw.PdfReader('/tmp/Mortgage-Loan-Application.pdf')
+        acroform = reader.Root.AcroForm
 
-            page = reader.pages[0]
-            fields = reader.get_fields()
+        fields_to_update = {
+            'name': username,
+            'monthlyNet9': monthly_income,
+            'creditScore3': credit_score,
+            'requestedLoan4': loan_value,
+            'downPayment12': down_payment
+        }
 
-            writer.append(reader)
+        # Get the fields from the PDF
+        fields = reader.Root.AcroForm.Fields
 
-            firstname, lastname = username.split(' ', 1)
-            writer.update_page_form_field_values(
-                writer.pages[0], {
-                    'fullName34[first]': firstname,
-                    'fullName34[last]': lastname,
-                    'monthlyNet': monthly_income,
-                    'creditScore': credit_score,
-                    'requestedLoan': loan_value,
-                    'downPayment': down_payment
-                }
-            )
+        # Loop through the fields and print their names and values
+        for field in fields:
+            field_name = field.T if hasattr(field, 'T') else ''
+            field_value = field.V if hasattr(field, 'V') else ''
+            print(f"Field Name: {field_name}, Field Value: {field_value}")
 
-            with open('/tmp/Mortgage-Loan-Application.pdf', "wb") as output_stream:
-                writer.write(output_stream)
-                
-            s3_client.upload_file('/tmp/Mortgage-Loan-Application.pdf', s3_artifact_bucket, 'agent/assets/Mortgage-Loan-Application-Completed.pdf')
+        print("acroform")
+        if acroform is not None and '/Fields' in acroform:
+            fields = acroform['/Fields']
+            for field in fields:
+                field_name = field['/T'][1:-1]  # Extract field name without '/'
+                if field_name in fields_to_update:
+                    field.update(pdfrw.PdfDict(V=fields_to_update[field_name]))
+
+        print("initializing writer")
+        writer = pdfrw.PdfWriter()
+        writer.addpage(reader.pages[0])  # Assuming you're updating the first page
+
+        print("writing to output file")
+        with open('/tmp/Mortgage-Loan-Application-Completed.pdf', 'wb') as output_stream:
+            writer.write(output_stream)
+
+            
+        s3_client.upload_file('/tmp/Mortgage-Loan-Application-Completed.pdf', s3_artifact_bucket, 'agent/assets/Mortgage-Loan-Application-Completed.pdf')
 
         # Create loan application doc in S3
         URLs=[]
@@ -756,7 +775,7 @@ def invoke_fm(prompt):
     Invokes Foundational Model endpoint hosted on Amazon Bedrock and parses the response.
     """
     chat = Chat(prompt)
-    llm = Bedrock(client=bedrock_client, model_id="anthropic.claude-instant-v1", region_name=os.environ['AWS_REGION']) # "anthropic.claude-v2 "
+    llm = Bedrock(client=bedrock_client, model_id="anthropic.claude-v2", region_name=os.environ['AWS_REGION']) # "anthropic.claude-instant-v1"
     llm.model_kwargs = {'max_tokens_to_sample': 350}
     lex_agent = FSIAgent(llm, chat.memory)
     formatted_prompt = "\n\nHuman: " + prompt + " \n\nAssistant:"

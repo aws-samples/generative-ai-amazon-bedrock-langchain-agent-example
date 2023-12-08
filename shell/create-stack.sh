@@ -13,10 +13,10 @@ aws s3 mb s3://${S3_ARTIFACT_BUCKET_NAME} --region us-east-1
 aws s3 cp ../agent/ s3://${S3_ARTIFACT_BUCKET_NAME}/agent/ --recursive --exclude ".DS_Store"
 
 export BEDROCK_LANGCHAIN_LAYER_ARN=$(aws lambda publish-layer-version \
-    --layer-name bedrock-langchain-pypdf \
-    --description "Bedrock LangChain PyPDF layer" \
+    --layer-name bedrock-langchain-pdfrw \
+    --description "Bedrock LangChain pdfrw layer" \
     --license-info "MIT" \
-    --content S3Bucket=${S3_ARTIFACT_BUCKET_NAME},S3Key=agent/lambda-layers/bedrock-langchain-pypdf.zip \
+    --content S3Bucket=${S3_ARTIFACT_BUCKET_NAME},S3Key=agent/lambda-layers/bedrock-langchain-pdfrw.zip \
     --compatible-runtimes python3.11 \
     --query LayerVersionArn --output text)
 

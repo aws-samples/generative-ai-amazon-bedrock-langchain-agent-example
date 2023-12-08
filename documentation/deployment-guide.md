@@ -188,10 +188,10 @@ Ensure the correct Lambda function and _$LATEST_ version are selected:
   <img src="../design/lex-lambda-config.png">
 </p>
 
-### Deploy a Web UI for Your Chatbot
+### Deploy Web UI for Your Agent
 The [Amazon Lex Web UI](https://aws.amazon.com/blogs/machine-learning/deploy-a-web-ui-for-your-chatbot/), also known as the chatbot UI, allows you to quickly provision a comprehensive web client for Amazon Lex chatbots. The Lex Web UI integrates with Amazon Lex to produce a JavaScript plugin that will incorporate a Lex-powered chat widget into your existing web application. In this case, we use the Lex Web UI to emulate an existing customer web application with an embedded Lex chatbot.
 
-1.  Follow the instructions to [deploy the Lex Web UI CloudFormation Stack](https://github.com/aws-samples/aws-lex-web-ui/tree/master#getting-started):
+1.  Follow the instructions to [deploy the Lex Web UI CloudFormation Stack](https://github.com/aws-samples/aws-lex-web-ui/tree/master#getting-started).
 
 2.  Navigate to the CloudFormation outputs tab and select the _SnippetUrl_:
  
