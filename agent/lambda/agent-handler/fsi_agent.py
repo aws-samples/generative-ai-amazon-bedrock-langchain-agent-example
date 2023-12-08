@@ -29,7 +29,7 @@ class FSIAgent():
             ai_prefix = self.ai_prefix,
             human_prefix = self.human_prefix,
             format_instructions = self.format_instructions,
-            verbose=True,
+            verbose = True,
             return_intermediate_steps = True,
             return_source_documents = True
         )
