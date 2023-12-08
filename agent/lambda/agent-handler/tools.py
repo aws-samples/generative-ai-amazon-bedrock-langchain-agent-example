@@ -20,7 +20,7 @@ class Tools():
             Tool(
                 name="Octank Financial",
                 func=self.chain_tool,
-                description="Use this tool to answer questions about Octank Financial.",
+                description="Use this tool to answer questions about AnyCompany.",
             )
         ]
 
