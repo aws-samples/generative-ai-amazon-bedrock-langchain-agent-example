@@ -31,13 +31,13 @@ The following testing procedure aims to verify that the Agent correctly identifi
 - **Access General Knowledge:** Confirm the Agent's access to general knowledge information for non-customer-specific, non-opinionated queries that require accurate and coherent retorts based on Bedrock LLM training data.
 
 <p align="center">
-  <img src="../design/general.svg" width="80%" height="80%">
+  <img src="../design/general.png" width="80%" height="80%">
 </p>
 
 - **Execute Pre-Defined Intents:** Ensure the agent correctly interprets and conversationally fulfills user prompts that are intended to be routed to pre-defined intents, such as completing a loan application as part of a business workflow.
 
 <p align="center">
-  <img src="../design/pre-defined.svg" width="80%" height="80%">
+  <img src="../design/pre-defined.png" width="80%" height="80%">
 </p>
 
 Resultant Loan Application Document completed through conversational flow:

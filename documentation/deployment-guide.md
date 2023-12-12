@@ -173,21 +173,6 @@ aws amplify start-job --app-id $AMPLIFY_APP_ID --branch-name $AMPLIFY_BRANCH --j
 
 ## Post-Deployment
 
-### Confirm Amazon Lex Bot Alias Locale is Built
-Amazon Lex V2 locales contain the intents and slot types that the bot uses in conversations with users in the specified language and locale. The above [Deployment Automation Script](#deployment) builds the bot, its intents, and its slot types into the 'en_US' locale.
-
-Use the [Amazon Lex Console](https://us-east-1.console.aws.amazon.com/lexv2/home?region=us-east-1#welcome) to confirm your bot's default alias, _TestBotAlias_, has been configured for the English (US) locale and integrated with the Agent Handler Lambda function for initialization, validation, and fulfillment.
-
-<p align="center">
-  <img src="../design/lex-lambda.png">
-</p>
-
-Ensure the correct Lambda function and _$LATEST_ version are selected:
-
-<p align="center">
-  <img src="../design/lex-lambda-config.png">
-</p>
-
 ### Deploy Web UI for Your Agent
 The [Amazon Lex Web UI](https://aws.amazon.com/blogs/machine-learning/deploy-a-web-ui-for-your-chatbot/), also known as the chatbot UI, allows you to quickly provision a comprehensive web client for Amazon Lex chatbots. The Lex Web UI integrates with Amazon Lex to produce a JavaScript plugin that will incorporate a Lex-powered chat widget into your existing web application. In this case, we use the Lex Web UI to emulate an existing customer web application with an embedded Lex chatbot.
 
