@@ -11,7 +11,7 @@ The following testing procedure aims to verify that the Agent correctly identifi
 - **Provide Personalized Responses:** Verify the Agent successfully accesses and utilizes relevant customer information In DynamoDB to tailor user-specific responses.
 
 <p align="center">
-  <img src="../design/customer-data.png" width="70%" height="70%">
+  <img src="../design/customer-data.png" width="20%" height="20%">
 </p>
 
 ❗ The use of PIN authentication within the Agent is for demonstration purposes only and should not be used in any production implementation.
