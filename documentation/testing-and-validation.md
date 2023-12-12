@@ -11,7 +11,7 @@ The following testing procedure aims to verify that the Agent correctly identifi
 - **Provide Personalized Responses:** Verify the Agent successfully accesses and utilizes relevant customer information In DynamoDB to tailor user-specific responses.
 
 <p align="center">
-  <img src="../design/customer-data.png" width="80%" height="80%">
+  <img src="../design/customer-data.png" width="70%" height="70%">
 </p>
 
 ❗ The use of PIN authentication within the Agent is for demonstration purposes only and should not be used in any production implementation.
@@ -19,31 +19,31 @@ The following testing procedure aims to verify that the Agent correctly identifi
 - **Curate Opinionated Answers:** Validate that opinionated questions are met with opinioned answers by the Agent correctly sourcing replies based on authoritative customer documents and webpages indexed by Kendra.
 
 <p align="center">
-  <img src="../design/opinionated.png" width="80%" height="80%">
+  <img src="../design/opinionated.png" width="70%" height="70%">
 </p>
 
 - **Deliver Contextual Generation:** Determine the Agent's ability to provide contextually relevant responses based on previous prompt history.
 
 <p align="center">
-  <img src="../design/contextual.png" width="80%" height="80%">
+  <img src="../design/contextual.png" width="70%" height="70%">
 </p>
 
 - **Access General Knowledge:** Confirm the Agent's access to general knowledge information for non-customer-specific, non-opinionated queries that require accurate and coherent retorts based on Bedrock LLM training data.
 
 <p align="center">
-  <img src="../design/general.svg" width="80%" height="80%">
+  <img src="../design/general.svg" width="70%" height="70%">
 </p>
 
 - **Execute Pre-Defined Intents:** Ensure the agent correctly interprets and conversationally fulfills user prompts that are intended to be routed to pre-defined intents, such as completing a loan application as part of a business workflow.
 
 <p align="center">
-  <img src="../design/pre-defined.svg" width="80%" height="80%">
+  <img src="../design/pre-defined.svg" width="70%" height="70%">
 </p>
 
 Resultant Loan Application Document completed through conversational flow:
 
 <p align="center">
-  <img src="../design/mortgage-app.png" width="80%" height="80%">
+  <img src="../design/mortgage-app.png" width="70%" height="70%">
 </p>
 
 Multi-channel support functionality can be tested in conjunction with the above assessment measures across Web, SMS, and Voice channels.
