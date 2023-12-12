@@ -19,13 +19,13 @@ The following testing procedure aims to verify that the Agent correctly identifi
 - **Curate Opinionated Answers:** Validate that opinionated questions are met with opinioned answers by the Agent correctly sourcing replies based on authoritative customer documents and webpages indexed by Kendra.
 
 <p align="center">
-  <img src="../design/opinionated.png" width="70%" height="70%">
+  <img src="../design/opinionated.png" width="60%" height="60%">
 </p>
 
 - **Deliver Contextual Generation:** Determine the Agent's ability to provide contextually relevant responses based on previous prompt history.
 
 <p align="center">
-  <img src="../design/contextual.png" width="70%" height="70%">
+  <img src="../design/contextual.png" width="60%" height="60%">
 </p>
 
 - **Access General Knowledge:** Confirm the Agent's access to general knowledge information for non-customer-specific, non-opinionated queries that require accurate and coherent retorts based on Bedrock LLM training data.
