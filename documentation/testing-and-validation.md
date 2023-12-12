@@ -11,7 +11,7 @@ The following testing procedure aims to verify that the Agent correctly identifi
 - **Provide Personalized Responses:** Verify the Agent successfully accesses and utilizes relevant customer information In DynamoDB to tailor user-specific responses.
 
 <p align="center">
-  <img src="../design/customer-data.png" width="40%" height="40%">
+  <img src="../design/customer-data.png" width="50%" height="50%">
 </p>
 
 ❗ The use of PIN authentication within the Agent is for demonstration purposes only and should not be used in any production implementation.
@@ -19,13 +19,13 @@ The following testing procedure aims to verify that the Agent correctly identifi
 - **Curate Opinionated Answers:** Validate that opinionated questions are met with opinioned answers by the Agent correctly sourcing replies based on authoritative customer documents and webpages indexed by Kendra.
 
 <p align="center">
-  <img src="../design/opinionated.png" width="40%" height="40%">
+  <img src="../design/opinionated.png" width="50%" height="50%">
 </p>
 
 - **Deliver Contextual Generation:** Determine the Agent's ability to provide contextually relevant responses based on previous prompt history.
 
 <p align="center">
-  <img src="../design/contextual.png" width="40%" height="40%">
+  <img src="../design/contextual.png" width="50%" height="50%">
 </p>
 
 - **Access General Knowledge:** Confirm the Agent's access to general knowledge information for non-customer-specific, non-opinionated queries that require accurate and coherent retorts based on Bedrock LLM training data.
