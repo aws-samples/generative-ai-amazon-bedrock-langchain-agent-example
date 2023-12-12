@@ -253,7 +253,7 @@ Resources:
   AmplifyApp:
     Type: AWS::Amplify::App
     Properties:
-      Name: !Sub ${AWS::StackName}-Otank-Financial-Website
+      Name: !Sub ${AWS::StackName}-AnyCompany-Website
       Repository: !Ref AmplifyRepository
       BuildSpec: |
         frontend:
@@ -269,7 +269,7 @@ Resources:
           cache:
             paths: []
       AccessToken: !Sub "{{resolve:secretsmanager:${GitHubTokenSecretName}}}"
-      Description: Octank Financial website
+      Description: AnyCompany website
       IAMServiceRole: !GetAtt AmplifyRole.Arn
 
   AmplifyBranch:
