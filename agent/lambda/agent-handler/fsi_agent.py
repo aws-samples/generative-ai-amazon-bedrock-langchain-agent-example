@@ -9,7 +9,14 @@ PREFIX = "\n\nHuman: You are a Financial Services AI chatbot (Assistant) for a c
  [Source 2: Source Title 2 - Source Link 2], \
  [Source n: Source Title n - Source Link n]. Provide two newline characters between your answer and the sources. By the way, the date is " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S") + ".\n\nAssistant:"
 
-FORMAT_INSTRUCTIONS = "\n\nHuman: \n\nAssistant:"
+FORMAT_INSTRUCTIONS = """\n\nHuman:
+Thought: Do I need to use a tool? Yes
+Action: The action to take
+Action Input: The input to the action
+Observation: The result of the action
+
+Thought: Do I need to use a tool? No
+FSI Agent: [answer and source documents]\n\nAssistant:"""
 
 class FSIAgent():
     def __init__(self,llm, memory) -> None:
