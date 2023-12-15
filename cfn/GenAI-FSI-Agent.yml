@@ -158,9 +158,12 @@ Resources:
               - dynamodb:Scan
               - dynamodb:UpdateItem
               - lambda:InvokeFunction
-              - bedrock:*
-              - kendra:*
-              - s3:*
+              - bedrock:InvokeModel
+              - kendra:Query
+              - kendra:Retrieve
+              - kendra:BatchGetDocumentStatus
+              - s3:GetObject
+              - s3:PutObject
             Effect: Allow
             Resource: '*'        
         Version: 2012-10-17
