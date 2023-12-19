@@ -14,15 +14,15 @@ Generative AI agents are capable of producing human-like responses and engaging 
 
 This sample solution creates a Generative AI-powered Financial Services Agent that can assist users with finding their account information, completing a loan application, or answering any natural language question while also sourcing links for the provided answers. This solution is intended to act as a launchpad for developers to create their own personalized conversational agents for various applications, such as chatbots, virtual assistants, and customer support systems.
 
-[Amazon Lex](https://docs.aws.amazon.com/lexv2/latest/dg/what-is.html) supplies the Natural Language Understanding (NLU) and Natural Language Processing (NLP) interface for the open-source [LangChain Conversational Agent](https://python.langchain.com/docs/modules/agents/agent_types/chat_conversation_agent) within an [AWS Amplify](https://docs.aws.amazon.com/amplify/latest/userguide/welcome.html) website. The agent is equipped with tools that include an Anthropic Claude 2.1 FM hosted on [Amazon Bedrock](https://aws.amazon.com/bedrock/) and synthetic customer data stored on [Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html) and [Amazon Kendra](https://docs.aws.amazon.com/kendra/latest/dg/what-is-kendra.html) to deliver the following capabilities:
-
-- **Provide Personalized Responses:** Query DynamoDB for customer account information, such as mortgage summary details, due balance, and next payment date.
-- **Access General Knowledge:** Harness the agent’s reasoning logic in tandem with the vast amounts of data used to pretrain the different FMs provided through Bedrock to produce replies for any customer prompt.
-- **Curate Opinionated Answers:** Inform agent responses using a Kendra Index configured with authoritative data sources: customer documents stored in [Amazon Simple Storage Service (S3)](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html) and [Web Crawler](https://docs.aws.amazon.com/kendra/latest/dg/data-source-web-crawler.html/) configured for the customer's website.
+[Amazon Lex](https://docs.aws.amazon.com/lexv2/latest/dg/what-is.html) supplies the Natural Language Understanding (NLU) and Natural Language Processing (NLP) interface for the open-source [LangChain Conversational Agent](https://python.langchain.com/docs/modules/agents/agent_types/chat_conversation_agent) within an [AWS Amplify](https://docs.aws.amazon.com/amplify/latest/userguide/welcome.html) website. The agent is equipped with tools that include an Anthropic Claude 2.1 FM hosted on [Amazon Bedrock](https://aws.amazon.com/bedrock/) and synthetic customer data stored on [Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html) and [Amazon Kendra](https://docs.aws.amazon.com/kendra/latest/dg/what-is-kendra.html).
 
 ### Demo Recording
 
 [<img src="design/amplify-website.png" width="100%">](https://www.youtube.com/watch?v=CGRw_M0uC4A&list=PLhr1KZpdzukcONwoeZOK3oCZiOngt4-o4&index=6&t=30s "Building Generative AI Agents: Amazon Bedrock, Amazon DynamoDB, Amazon Kendra, Amazon Lex, LangChain - YouTube")
+
+- **Provide Personalized Responses:** Query DynamoDB for customer account information, such as mortgage summary details, due balance, and next payment date.
+- **Access General Knowledge:** Harness the agent’s reasoning logic in tandem with the vast amounts of data used to pretrain the different FMs provided through Bedrock to produce replies for any customer prompt.
+- **Curate Opinionated Answers:** Inform agent responses using a Kendra Index configured with authoritative data sources: customer documents stored in [Amazon Simple Storage Service (S3)](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html) and [Web Crawler](https://docs.aws.amazon.com/kendra/latest/dg/data-source-web-crawler.html/) configured for the customer's website.
 
 ## Solution Architecture
 
