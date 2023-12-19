@@ -32,6 +32,7 @@ This sample solution creates a Generative AI-powered Financial Services Agent th
 </p>
 
 1. Users perform natural dialog with the Agent through their choice of Web, SMS, or Voice channels. The Web channel includes an AWS Amplify hosted website with an Amazon Lex embedded chatbot for an example customer, Octank Financial. Each user request is processed by Lex which invokes an [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html) handler for intent fulfillment. SMS and Voice channels can be optionally configured using [Amazon Connect](https://docs.aws.amazon.com/lexv2/latest/dg/contact-center.html) and [messaging integrations](https://docs.aws.amazon.com/lexv2/latest/dg/deploying-messaging-platform.html) for Amazon Lex.
+
    Each user request is processed by Lex to determine user intent through a process called intent recognition, which involves analyzing and interpreting the user's input (text or speech) to understand the user's intended action or purpose.
 
 3.	Lex then invokes an [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html) handler for user intent fulfillment. The Lambda function associated with the Lex chatbot contains the logic and business rules required to process the user's intent. Lambda performs specific actions or retrieves information based on the user's input, making decisions and generating appropriate responses.
