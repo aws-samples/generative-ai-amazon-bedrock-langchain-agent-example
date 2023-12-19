@@ -58,7 +58,7 @@ This sample solution creates a Generative AI-powered Financial Services Agent th
        - **Few-Shot:** A set of sample questions and their corresponding answers are included before the actual question. By exposing the model to these examples, it learns to respond in a similar manner.
        - **Chain-of-Thought:** A specific style of few-shot prompting where the prompt is designed to contain a series of intermediate reasoning steps, guiding the model through a logical thought process, ultimately leading to the desired answer.
 
-         Our Agent utilizes chain-of-thought reasoning by executing a set of _Actions_ upon receiving a request. Following each _Action_, the Agent enters the _Observation_ step, where it expresses a _Thought_. If a _Final Answer_ is not yet achieved, the Agent iterates, selecting different _Actions_ to progress towards reaching the _Final Answer_.
+    Our Agent utilizes chain-of-thought reasoning by executing a set of _Actions_ upon receiving a request. Following each _Action_, the Agent enters the _Observation_ step, where it expresses a _Thought_. If a _Final Answer_ is not yet achieved, the Agent iterates, selecting different _Actions_ to progress towards reaching the _Final Answer_.
 
 ~~~~
 Thought: Do I need to use a tool? Yes
