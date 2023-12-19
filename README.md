@@ -17,7 +17,8 @@ This sample solution creates a Generative AI-powered Financial Services Agent th
 This solution is intended to act as a launchpad for developers to create their own personalized conversational agents for various applications, such as chatbots, virtual assistants, and customer support systems.
 
 ### Demo Recording
-[<img src="design/thumbnail.png" width="100%">](https://www.youtube.com/watch?v=bv4XV7epeik "Building Generative AI Agents with Amazon Bedrock, Amazon Lex, and LangChain - YouTube")
+
+[<img src="design/amplify-website.png" width="100%">](https://www.youtube.com/watch?v=CGRw_M0uC4A&list=PLhr1KZpdzukcONwoeZOK3oCZiOngt4-o4&index=6&t=30s "Building Generative AI Agents: Amazon Bedrock, Amazon DynamoDB, Amazon Kendra, Amazon Lex, LangChain - YouTube")
 
 ## Solution Architecture
 
