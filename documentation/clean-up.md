@@ -7,7 +7,7 @@ To avoid charges in your AWS account, please clean up the solution's provisioned
 
 GitHub PATs are configured with an expiration value. If you want to ensure that your PAT cannot be used for programmatic access to your forked Amplify GitHub repository before it reaches its expiry, you can revoke the PAT by following [GitHub's instructions](https://docs.github.com/en/organizations/managing-programmatic-access-to-your-organization/reviewing-and-revoking-personal-access-tokens-in-your-organization).
 
-## Step 2: Delete `GenAI-FSI-Agent.yml` CloudFormation Stack
+## Step 2: Delete `GenAI-FSI-Agent.yml` CloudFormation Stack and Other Solution Resources
 The following commands use the default stack name. If you customized the stack name, adjust the commands accordingly.
 
 ```sh
@@ -15,8 +15,8 @@ The following commands use the default stack name. If you customized the stack n
 ./delete-stack.sh
 ```
 
-#### Resource Deletion Automation Script
-The [delete-stack.sh](../shell/delete-stack.sh) shell script deletes the resources that were originally provisioned from the [GenAI-FSI-Agent.yml](../cfn/GenAI-FSI-Agent.yml) CloudFormation stack.
+#### Solution Deletion Automation Script
+The [delete-stack.sh](../shell/delete-stack.sh) shell script deletes the resources that were originally provisioned using the solution deployment automation script, including the [GenAI-FSI-Agent.yml](../cfn/GenAI-FSI-Agent.yml) CloudFormation stack.
 
 ```sh
 # cd generative-ai-amazon-bedrock-langchain-agent-example/shell/
