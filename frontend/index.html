@@ -105,14 +105,14 @@
   };
   var loader = new ChatBotUiLoader.IframeLoader(loaderOpts);
   var chatbotUiConfig = {
-          /* Example of setting session attributes on parent page
+          /* Example of setting session attributes on parent page */
           lex: {
             sessionAttributes: {
               userAgent: navigator.userAgent,
               QNAClientFilter: ''
             }
           }
-          */
+          /**/
         };
   loader.load(chatbotUiConfig)
     .catch(function (error) { console.error(error); });
