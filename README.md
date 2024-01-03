@@ -1,4 +1,4 @@
-# Building Generative AI Agents with LangChain, Amazon Bedrock, Amazon DynamoDB, Amazon Kendra, and Amazon Lex. 
+# Build generative AI agents with Amazon Bedrock, Amazon DynamoDB, Amazon Kendra, Amazon Lex, and LangChain
 ---
 
 ## Content
