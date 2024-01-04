@@ -80,7 +80,7 @@ export STACK_NAME=<YOUR-STACK-NAME> # Stack name must be lower case for S3 bucke
 export KENDRA_WEBCRAWLER_URL=<YOUR-WEBSITE-ROOT-DOMAIN> # Public or internal HTTPS website for Kendra to index via Web Crawler (e.g., https://www.investopedia.com/) - Please see https://docs.aws.amazon.com/kendra/latest/dg/data-source-web-crawler.html
 ```
 
-5. Finally, execute the shell script to deploy the [GenAI-FSI-Agent.yml](../cfn/GenAI-FSI-Agent.yml) CloudFormation stack.
+5. Finally, execute the shell script to deploy the [GenAI-FSI-Agent.yml](../cfn/GenAI-FSI-Agent.yml) CloudFormation stack:
 
 ```sh
 source ./create-stack.sh
@@ -190,7 +190,7 @@ aws amplify start-job --app-id $AMPLIFY_APP_ID --branch-name $AMPLIFY_BRANCH --j
   <img src="../design/Kommunicate.png">
 </p>
 
-8. Edit your forked version of the Amplify GitHub source repository by adding your Kommunicate JavaScript plugin to the section labeled '_<-- Paste your Kommunicate JavaScript plugin here -->_' for each of the HTML files under the [frontend directory](../frontend/): _index.html, contact.html, about.html_.
+8. Edit your forked version of the Amplify GitHub source repository by adding your Kommunicate JavaScript plugin to the section labeled '_<-- Paste your Kommunicate JavaScript plugin here -->_' for each of the HTML files under the [frontend directory](../frontend/): _index.html, contact.html, about.html_:
 
 <p align="left">
   <img src="../design/Kommunicate-plugin.svg">
@@ -221,7 +221,7 @@ aws cloudformation describe-stacks \
     --query 'Stacks[0].Outputs[?OutputKey==`AmplifyDemoWebsite`].OutputValue' --output text
 ```
 
-9. Access your Amplify domain URL and continue to [Testing and Validation](../documentation/testing-and-validation.md).
+9. Access your Amplify domain URL and continue to [Testing and Validation](../documentation/testing-and-validation.md):
 
 <p align="center">
   <img src="../design/amplify-website.png">
