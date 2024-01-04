@@ -54,7 +54,7 @@ The [create-stack.sh](../shell/create-stack.sh) shell script allows for automate
 5. Two Lambda functions:
 	- Agent Handler: Contains the LangChain Conversational Agent logic that can intelligently employ a variety of tools based on user input.
 	- Data Loader: Loads example customer account data into _UserExistingAccountsTable_ and is invoked as a custom CloudFormation resource during stack creation.
-6. AWS Lambda layer built from [requirements.txt](../agent/lambda-layers/requirements.txt). Supplies LangChain's LLM library with an Amazon Bedrock hosted model as the underlying LLM. Also serves PyPDF as an open-source PDF library for creating and modifying PDF files.
+6. AWS Lambda layer built from [requirements.txt](../agent/lambda-layers/requirements.txt). Supplies LangChain's LLM library with an Amazon Bedrock provided model as the underlying LLM. Also serves PyPDF as an open-source PDF library for creating and modifying PDF files.
 7. Amazon Kendra Index: Provides a searchable index of customer proprietary information, including documents, FAQs, knowledge bases, manuals, websites, and more.
 8. Two Kendra Data Sources:
 	- S3: Hosts an example customer [FAQ document](../agent/assets/Octank-Financial-FAQs.csv).
