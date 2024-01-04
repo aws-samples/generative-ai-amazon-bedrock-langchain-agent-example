@@ -209,7 +209,7 @@ Customize your chat widget styling and greeting message in the [Kommunicate cons
 </p>
 
 <p align="left">
-  <img src="../design/Kommunicate-greeting.png" height="85%" width="85%">
+  <img src="../design/Kommunicate-greeting.png" height="75%" width="75%">
 </p>
 
 ### Launch Amplify Website
