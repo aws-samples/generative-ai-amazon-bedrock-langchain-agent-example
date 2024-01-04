@@ -11,13 +11,13 @@
 ### Fork and Clone [_generative-ai-amazon-bedrock-langchain-agent-example_](https://github.com/aws-samples/generative-ai-amazon-bedrock-langchain-agent-example) Repository
 The AWS Amplify configuration points to a GitHub source repository from which our website's frontend is built. To control the source code that builds your Amplify website, follow [GitHub's instructions](https://docs.github.com/en/get-started/quickstart/fork-a-repo?tool=webui&platform=mac) to fork this _generative-ai-amazon-bedrock-langchain-agent-example_ repository. This creates a copy of the repository that is disconnected from the original codebase, so you can make the appropriate modifications.
 
-❗ Take note of your forked repository URL as you will use it to clone the repository in the next step and to configure the _GITHUB_PAT_ environment variable used in the [Deployment Automation Script](#deployment).
-
 1. Clone the _generative-ai-amazon-bedrock-langchain-agent-example_ repository:
 
 ```sh
 git clone https://github.com/aws-samples/generative-ai-amazon-bedrock-langchain-agent-example
 ```
+
+❗ Take note of your forked repository URL as you will use it to clone the repository in the next step and to configure the _GITHUB_PAT_ environment variable used in the [Deployment Automation Script](#deployment).
 
 ### Create GitHub Personal Access Token (PAT)
 The Amplify hosted website uses a GitHub PAT as the OAuth token for third-party source control. The OAuth token is used to create a webhook and a read-only deploy key using SSH cloning.
