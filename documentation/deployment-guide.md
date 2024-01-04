@@ -174,7 +174,7 @@ aws amplify start-job --app-id $AMPLIFY_APP_ID --branch-name $AMPLIFY_BRANCH --j
 ## Post-Deployment
 
 ### Integrate Amazon Lex with Kommunicate
-[Kommunicate](https://docs.kommunicate.io/) integrates with Amazon Lex to produce a JavaScript plugin that will embed a Lex-powered chat widget within the solution's Amplify website. Kommunicate only requires _AmazonLexReadOnly_ and _AmazonLexRunBotsOnly_ permissions.
+[Kommunicate](https://docs.kommunicate.io/) integrates with Amazon Lex to produce a JavaScript plugin that will embed a Lex-powered chat widget within the solution's Amplify website. Kommunicate only requires _AmazonLexReadOnly_ and _AmazonLexRunBotsOnly_ permissions. If you prefer not to use a third-party, the [Amazon Lex Web UI](https://aws.amazon.com/blogs/machine-learning/deploy-a-web-ui-for-your-chatbot/) can also be used to quickly provision a basic web client for Amazon Lex chatbots, although it is less feature rich.
 
 ❗ Kommunicate end user information usage: End users are defined as individuals who interact with the Lex chatbot through the Web channel. End user prompts are proxied through Kommunicate and sent to the Lex chatbot. End users may submit information such as personal information including names, email addresses, and phone numbers in the chat or connected email. Kommunicate only stores chat history and other information provided by end users for the sole purpose of displaying analytics and generating reports within the Kommunicate console, which is protected by username/password or SAML login credentials. Kommunicate does not expose the personal information of end users to any 3rd party. Please refer to [Kommunicate's privacy policy](https://www.kommunicate.io/privacy-policy) for additional information.
 
