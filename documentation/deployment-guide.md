@@ -192,24 +192,24 @@ Then copy the [JavaScript plugin](https://dashboard.kommunicate.io/settings/inst
 
 Edit your forked version of the Amplify GitHub source repository by adding your Kommunicate JavaScript plugin to the section labeled '_<-- Paste your Kommunicate JavaScript plugin here -->_' for each of the HTML files under the [frontend directory](../frontend/): _index.html, contact.html, about.html_.
 
-<p align="center">
+<p align="left">
   <img src="../design/Kommunicate-plugin.svg">
 </p>
 
 Amplify provides an automated build and release pipeline that triggers based on new commits to your forked repository and publishes the new version of your website to your Amplify domain. You can view the deployment status in the [AWS Amplify Console](https://us-east-1.console.aws.amazon.com/amplify/home?region=us-east-1#/).
 
-<p align="center">
+<p align="left">
   <img src="../design/amplify-deployment.png">
 </p>
 
 Customize your chat widget styling and greeting message in the [Kommunicate console](https://dashboard.kommunicate.io/settings/chat-widget-customization#chat-widget-styling).
 
-<p align="center">
+<p align="left">
   <img src="../design/Kommunicate-chat-widget.png">
 </p>
 
-<p align="center">
-  <img src="../design/Kommunicate-greeting.png">
+<p align="left">
+  <img src="../design/Kommunicate-greeting.png" height="85%" width="85%">
 </p>
 
 ### Launch Amplify Website
