@@ -84,6 +84,7 @@ By following this guide, you can successfully implement, test, and validate a re
 - [Amazon Bedrock](https://aws.amazon.com/bedrock/)
 - [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)
 - [Amazon Kendra](https://aws.amazon.com/kendra/)
+- [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html)
 - [Amazon Lex](https://aws.amazon.com/lex/)
 - [LangChain Conversational Agent](https://python.langchain.com/docs/modules/agents/agent_types/chat_conversation_agent)
 
