@@ -18,7 +18,7 @@ This sample solution creates a Generative AI-powered Financial Services Agent th
 
 ### Demo Recording
 
-[<img src="design/amplify-website.png" width="100%">](https://www.youtube.com/watch?v=CGRw_M0uC4A&list=PLhr1KZpdzukcONwoeZOK3oCZiOngt4-o4&index=6&t=30s "Building Generative AI Agents: Amazon Bedrock, Amazon DynamoDB, Amazon Kendra, Amazon Lex, LangChain - YouTube")
+[<img src="design/amplify-website.png" width="100%">](https://www.youtube.com/watch?v=CGRw_M0uC4A "Building Generative AI Agents: Amazon Bedrock, Amazon DynamoDB, Amazon Kendra, Amazon Lex, LangChain - YouTube")
 
 - **Provide Personalized Responses:** Query DynamoDB for customer account information, such as mortgage summary details, due balance, and next payment date.
 - **Access General Knowledge:** Harness the agent’s reasoning logic in tandem with the vast amounts of data used to pretrain the different FMs provided through Bedrock to produce replies for any customer prompt.
