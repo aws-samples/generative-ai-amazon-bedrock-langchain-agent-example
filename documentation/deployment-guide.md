@@ -7,6 +7,11 @@
 - [Post-Deployment](#post-deployment)
 
 ## Pre-Deployment
+By default, AWS CloudFormation uses a temporary session that it generates from your user credentials for stack operations. If you specify a service role, CloudFormation will instead use that role's credentials.
+
+To deploy this solution, your IAM user/role or service role must have permissions to deploy the resources specified in the CloudFormation template. For more details on AWS Identity and Access Management (IAM) with CloudFormation, please refer to the [AWS CloudFormation User Guide](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-template.html).
+
+You must also have [AWS CLI](https://aws.amazon.com/cli/) installed. For instructions on installing AWS CLI, please see [Installing, updating, and uninstalling the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html).
 
 ### Fork and Clone [_generative-ai-amazon-bedrock-langchain-agent-example_](https://github.com/aws-samples/generative-ai-amazon-bedrock-langchain-agent-example) Repository
 The AWS Amplify configuration points to a GitHub source repository from which our website's frontend is built. To control the source code that builds your Amplify website, follow [GitHub's instructions](https://docs.github.com/en/get-started/quickstart/fork-a-repo?tool=webui&platform=mac) to fork this _generative-ai-amazon-bedrock-langchain-agent-example_ repository. This creates a copy of the repository that is disconnected from the original codebase, so you can make the appropriate modifications.
