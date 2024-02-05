@@ -17,15 +17,16 @@ conversation_table_name = os.environ.get('CONVERSATION_TABLE')
 class Chat():
 
     def __init__(self, event):
-        print("Initializing Chat with FSI Agent")
+        print("Initializing Chat with FSI Agent with event = " + str(event))
         self.set_user_id(event)
         self.set_chat_index()
-        self.set_memory()
+        self.set_memory(event)
 
-    def set_memory(self):
+    def set_memory(self, event):
         print("Setting Chat History")
-        _id = self.user_id + "-" + str(self.chat_index)
-        self.message_history = DynamoDBChatMessageHistory(table_name=conversation_table_name, session_id=_id)
+        user_id = self.user_id + "-" + str(self.chat_index)
+        self.message_history = DynamoDBChatMessageHistory(table_name=conversation_table_name, session_id=user_id)
+        self.message_history.add_user_message(event)
         self.memory = ConversationBufferMemory(ai_prefix="Assistant", memory_key="chat_history", chat_memory=self.message_history, input_key="input", output_key="output", return_messages=True)
 
     def get_chat_index(self):
@@ -45,7 +46,9 @@ class Chat():
         dynamodb.put_item(TableName=chat_index_table_name, Item=ts.serialize(input)['M'])
 
     def create_new_chat(self):
-        self.increment_chat_index()
+        if not hasattr(self, 'chat_created') or not self.chat_created:
+            self.increment_chat_index()
+            self.chat_created = True
 
     def set_user_id(self, event):
         self.user_id = "Example User"
