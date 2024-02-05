@@ -226,7 +226,7 @@ You can customize your chat widget styling and greeting message in the [Kommunic
 </p>
 
 ### Access the Amplify Website
-With your Amazon Lex JavaScript plugin in place, you are now ready to launch your Amplify demo website. To access your website's domain, navigate to the [CloudFormation stack's **Output** tab](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-view-stack-data-resources.html) and locate the Amplify domain URL.
+With your Amazon Lex JavaScript plugin in place, you are now ready to visit your Amplify demo website. To access your website's domain, navigate to the [CloudFormation stack's **Output** tab](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-view-stack-data-resources.html) and locate the Amplify domain URL.
 
 Alternatively, use the following command:
 
