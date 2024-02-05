@@ -14,7 +14,7 @@ To deploy this solution, your IAM user/role or service role must have permission
 You must also have [AWS CLI](https://aws.amazon.com/cli/) installed. For instructions on installing AWS CLI, please see [Installing, updating, and uninstalling the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html).
 
 ### Fork and Clone [_generative-ai-amazon-bedrock-langchain-agent-example_](https://github.com/aws-samples/generative-ai-amazon-bedrock-langchain-agent-example) Repository
-Before you deploy the solution, you need to create your own forked version of the solution repository with a token-secured webhook to automate continuous deployment of your Amplify website. The Amplify configuration points to a GitHub source repository from which our website's front end is built.
+Before you deploy the solution, you need to create your own forked version of the solution repository with a token-secured webhook to automate continuous deployment of your Amplify website. The Amplify configuration points to a GitHub source repository from which our website's front-end is built.
 
 Complete the following steps to fork and clone the [generative-ai-amazon-bedrock-langchain-agent-example](https://github.com/aws-samples/generative-ai-amazon-bedrock-langchain-agent-example.git) repository:
 
@@ -182,7 +182,7 @@ aws amplify start-job --app-id $AMPLIFY_APP_ID --branch-name $AMPLIFY_BRANCH --j
 ```
 
 ## Post-Deployment
-In this section, we discuss the post-deployment steps for launching a frontend application that is intended to emulate the customer’s Production application. The financial services agent will operate as an embedded assistant within the example web UI.
+In this section, we discuss the post-deployment steps for launching a front-end application that is intended to emulate the customer’s Production application. The financial services agent will operate as an embedded assistant within the example web UI.
 
 ### Launch a Web UI for Your Chatbot
 [Kommunicate](https://docs.kommunicate.io/) integrates with Amazon Lex to produce a JavaScript plugin that will incorporate an Amazon Lex-powered chat widget into your existing web application. In this case, we use AWS Amplify and Kommunicate to emulate an existing customer web application with an embedded Amazon Lex chatbot.
