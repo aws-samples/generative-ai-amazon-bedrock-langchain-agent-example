@@ -203,7 +203,7 @@ Kommunicate only requires _AmazonLexReadOnly_ and _AmazonLexRunBotsOnly_ permiss
   <img src="../design/Kommunicate.png">
 </p>
 
-3. Edit your forked version of the Amplify GitHub source repository by adding your Kommunicate JavaScript plugin to the section labeled '_<-- Paste your Kommunicate JavaScript plugin here -->_' for each of the HTML files under the [frontend directory](../frontend/): _index.html, contact.html, about.html_:
+3. Edit your forked version of the Amplify GitHub source repository by adding your Kommunicate JavaScript plugin to the section labeled '_<!-- Paste your Kommunicate / Lex Web UI JavaScript plugin here -->_' for each of the HTML files under the [frontend directory](../frontend/): _index.html, contact.html, about.html_:
 
 <p align="left">
   <img src="../design/Kommunicate-plugin.svg">
