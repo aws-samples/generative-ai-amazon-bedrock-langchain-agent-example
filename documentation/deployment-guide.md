@@ -18,10 +18,7 @@ Before you deploy the solution, you need to create your own forked version of th
 
 Complete the following steps to fork and clone the [generative-ai-amazon-bedrock-langchain-agent-example](https://github.com/aws-samples/generative-ai-amazon-bedrock-langchain-agent-example.git) repository:
 
-1. To control the source code that builds your Amplify website, follow the instructions in [Fork a repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo?tool=webui&platform=mac) to fork the _generative-ai-amazon-bedrock-langchain-agent-example_ repository.
-
-This creates a copy of the repository that is disconnected from the original code base, so you can make the appropriate modifications.
-
+1. To control the source code that builds your Amplify website, follow the instructions in [Fork a repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo?tool=webui&platform=mac) to fork the _generative-ai-amazon-bedrock-langchain-agent-example_ repository. This creates a copy of the repository that is disconnected from the original code base, so you can make the appropriate modifications.
 2. Take note of your forked repository URL to use to clone the repository in the next step and to configure the _GITHUB_PAT_ environment variable used in the solution [deployment automation script](deployment-automation-script).
 3. Clone your forked repository using the git clone command:
 
