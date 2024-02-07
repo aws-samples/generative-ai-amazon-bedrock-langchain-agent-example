@@ -85,7 +85,27 @@ This sample creates a Generative AI-powered Financial Services Agent that can as
 </div>
 
 <!-- Paste your Lex Web UI JavaScript plugin here --> 
-
+<script src="https://d2a070xoemmd5z.cloudfront.net/lex-web-ui-loader.min.js"></script>
+<script>
+  var loaderOpts = {
+    baseUrl: 'https://d2a070xoemmd5z.cloudfront.net/',
+    shouldLoadMinDeps: true
+  };
+  var loader = new ChatBotUiLoader.IframeLoader(loaderOpts);
+  var chatbotUiConfig = {
+          /* Example of setting session attributes on parent page
+          lex: {
+            sessionAttributes: {
+              userAgent: navigator.userAgent,
+              QNAClientFilter: ''
+            }
+          }
+          */
+        };
+  loader.load(chatbotUiConfig)
+    .catch(function (error) { console.error(error); });
+</script>
+  
 <!-- End of Lex Web UI IFrame Snippet--> 
   
 </body>
