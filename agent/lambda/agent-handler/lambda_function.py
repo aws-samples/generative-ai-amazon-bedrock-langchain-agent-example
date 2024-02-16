@@ -775,7 +775,6 @@ def invoke_fm(prompt):
     Invokes Foundational Model endpoint hosted on Amazon Bedrock and parses the response.
     """
     chat = Chat(prompt)
-    chat.create_new_chat()
     llm = Bedrock(client=bedrock_client, model_id="anthropic.claude-v2", region_name=os.environ['AWS_REGION']) # "anthropic.claude-instant-v1"
     llm.model_kwargs = {'max_tokens_to_sample': 350}
     lex_agent = FSIAgent(llm, chat.memory)
