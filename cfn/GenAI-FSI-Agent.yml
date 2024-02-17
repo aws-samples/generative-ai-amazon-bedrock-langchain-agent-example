@@ -17,6 +17,49 @@ Metadata:
     OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Code Asset S3 Bucket, Lambda Deployment Package Keys, and Lambda Layer ARNs
+        Parameters:
+          - S3ArtifactBucket
+          - DataLoaderS3Key
+          - LambdaHandlerS3Key
+          - LexBotS3Key
+          - BedrockLangChainPDFRWLayerArn
+          - CfnresponseLayerArn
+      - Label:
+          default: GitHub Secrets Manager Details
+        Parameters:
+          - GitHubTokenSecretName
+      - Label:
+          default: Kendra Web Crawler Root Domain
+        Parameters:
+          - KendraWebCrawlerUrl
+      - Label:
+          default: Amplify Source Repository
+        Parameters:
+          - AmplifyRepository
+    ParameterLabels:
+      S3ArtifactBucket:
+        default: your-code-assets-bucket-name
+      DataLoaderS3Key:
+        default: /agent/lambda/data-loader/loader_deployment_package.zip
+      LambdaHandlerS3Key:
+        default: /agent/lambda/action-groups/create_claim.zip
+      LexBotS3Key:
+        default: /agent/bot/lex.zip
+      BedrockLangChainPDFRWLayerArn:
+        default: bedrock-layer-arn
+      CfnresponseLayerArn:
+        default: cfnresponse-layer-arn
+      GitHubTokenSecretName:
+        default: your-github-token-secret-name
+      KendraWebCrawlerUrl:
+        default: your-root-domain
+      AmplifyRepository:
+        default: https://github.com/aws-samples/generative-ai-amazon-bedrock-langchain-agent-example
+
 Parameters:
   S3ArtifactBucket:
     Description: S3 Bucket Containing Lambda Handler, Lambda Data Loader, and Lex Deployment Packages, along with Customer FAQ and Mortgage Application example documents.
@@ -30,13 +73,18 @@ Parameters:
     Description: S3 Key for Lambda Handler
     Type: String
     Default: /agent/lambda/agent-handler/agent_deployment_package.zip
-  BedrockLangChainPyPDFLayerArn:
-    Description: ARN for Bedrock LangChain PyPDF Lambda layer
-    Type: String
   LexBotS3Key:
     Description: S3 key for Lex chatbot deployment package. 
     Type: String
     Default: /agent/bot/lex.zip
+  BedrockLangChainPDFRWLayerArn:
+    Description: Bedrock LangChain PyPDF Lambda layer ARN
+    Type: String
+    Default: bedrock-layer-arn
+  CfnresponseLayerArn:
+    Description: cfnresponse Lambda layer ARN
+    Type: String
+    Default: cfnresponse-layer-arn
   GitHubTokenSecretName:
     Description: GitHub PAT. 
     Type: String
@@ -183,7 +231,7 @@ Resources:
       Timeout: 30
       Handler: lambda_function.handler
       Layers:
-        - !Ref BedrockLangChainPyPDFLayerArn
+        - !Ref BedrockLangChainPDFRWLayerArn
       Role: !GetAtt AgentHandlerServiceRole.Arn
       Architectures:
         - x86_64
@@ -207,14 +255,16 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Description: Lambda function to load the plan catalog.
-      FunctionName: !Sub ${AWS::StackName}-GenAIDataLoader
+      FunctionName: !Sub ${AWS::StackName}-DDBDataLoader
       Code: 
         S3Bucket: !Ref S3ArtifactBucket
         S3Key: !Ref DataLoaderS3Key
-      Runtime: nodejs14.x
+      Runtime: python3.11
       MemorySize: 256
       Timeout: 20
       Handler: index.handler
+      Layers:
+        - !Ref CfnresponseLayerArn
       Role: !GetAtt AgentHandlerServiceRole.Arn
       Environment:
         Variables:

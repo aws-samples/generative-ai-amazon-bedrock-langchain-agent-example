@@ -9,14 +9,28 @@ export DATA_LOADER_S3_KEY="agent/lambda/data-loader/loader_deployment_package.zi
 export LAMBDA_HANDLER_S3_KEY="agent/lambda/agent-handler/agent_deployment_package.zip"
 export LEX_BOT_S3_KEY="agent/bot/lex.zip"
 
-aws s3 mb s3://${S3_ARTIFACT_BUCKET_NAME} --region us-east-1
-aws s3 cp ../agent/ s3://${S3_ARTIFACT_BUCKET_NAME}/agent/ --recursive --exclude ".DS_Store"
+# Check the values (optional)
+echo "STACK_NAME: $STACK_NAME"
+echo "ACCOUNT_ID: $ACCOUNT_ID"
+echo "S3_ARTIFACT_BUCKET_NAME: $S3_ARTIFACT_BUCKET_NAME"
 
-export BEDROCK_LANGCHAIN_LAYER_ARN=$(aws lambda publish-layer-version \
+aws s3 mb s3://${S3_ARTIFACT_BUCKET_NAME} --region us-east-1
+aws s3 cp ../agent/ s3://${S3_ARTIFACT_BUCKET_NAME}/agent/ --recursive --exclude ".DS_Store" --exclude "*/.DS_Store"
+
+
+export BEDROCK_LANGCHAIN_PDFRW_LAYER_ARN=$(aws lambda publish-layer-version \
     --layer-name bedrock-langchain-pdfrw \
     --description "Bedrock LangChain pdfrw layer" \
     --license-info "MIT" \
-    --content S3Bucket=${S3_ARTIFACT_BUCKET_NAME},S3Key=agent/lambda-layers/bedrock-langchain-pdfrw.zip \
+    --content S3Bucket=${S3_ARTIFACT_BUCKET_NAME},S3Key=agent/lambda/lambda-layers/bedrock-langchain-pdfrw.zip \
+    --compatible-runtimes python3.11 \
+    --query LayerVersionArn --output text)
+
+export CFNRESPONSE_LAYER_ARN=$(aws lambda publish-layer-version \
+    --layer-name cfnresponse \
+    --description "cfnresponse Layer" \
+    --license-info "MIT" \
+    --content S3Bucket=${S3_ARTIFACT_BUCKET_NAME},S3Key=agent/lambda/lambda-layers/cfnresponse-layer.zip \
     --compatible-runtimes python3.11 \
     --query LayerVersionArn --output text)
 
@@ -31,9 +45,10 @@ ParameterKey=S3ArtifactBucket,ParameterValue=${S3_ARTIFACT_BUCKET_NAME} \
 ParameterKey=DataLoaderS3Key,ParameterValue=${DATA_LOADER_S3_KEY} \
 ParameterKey=LambdaHandlerS3Key,ParameterValue=${LAMBDA_HANDLER_S3_KEY} \
 ParameterKey=LexBotS3Key,ParameterValue=${LEX_BOT_S3_KEY} \
+ParameterKey=BedrockLangChainPDFRWLayerArn,ParameterValue=${BEDROCK_LANGCHAIN_PDFRW_LAYER_ARN} \
+ParameterKey=CfnresponseLayerArn,ParameterValue=${CFNRESPONSE_LAYER_ARN} \
 ParameterKey=GitHubTokenSecretName,ParameterValue=${GITHUB_TOKEN_SECRET_NAME} \
 ParameterKey=KendraWebCrawlerUrl,ParameterValue=${KENDRA_WEBCRAWLER_URL} \
-ParameterKey=BedrockLangChainPyPDFLayerArn,ParameterValue=${BEDROCK_LANGCHAIN_LAYER_ARN} \
 ParameterKey=AmplifyRepository,ParameterValue=${AMPLIFY_REPOSITORY} \
 --capabilities CAPABILITY_NAMED_IAM
 
