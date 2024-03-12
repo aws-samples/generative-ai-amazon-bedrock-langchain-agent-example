@@ -52,3 +52,4 @@ class Chat():
 
     def set_chat_index(self):
         self.chat_index = self.get_chat_index()
+        
