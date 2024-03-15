@@ -31,7 +31,27 @@
 <script type="text/javascript" data-dynamic-entity="1" data-editor-friendly="1">if (typeof jQuery === "undefined") {document.write(unescape('%3Cscript src="https://cdn.secure.website/library/jquery/jquery-1.11.1.min.js" data-dynamic-entity="1" type="text/javascript"%3E%3C/script%3E'));}</script>
 <script type="text/javascript" data-dynamic-entity="1" data-editor-friendly="1">var $j = jQuery.noConflict();</script>
 <script type="text/javascript" data-dynamic-entity="1" data-editor-friendly="1" src="https://files.secure.website/library/users/common.js"></script>
-
+<script src="https://duxhn3geta789.cloudfront.net/lex-web-ui-loader.min.js"></script>
+<script>
+  var loaderOpts = {
+    baseUrl: 'https://duxhn3geta789.cloudfront.net/',
+    shouldLoadMinDeps: true
+  };
+  var loader = new ChatBotUiLoader.IframeLoader(loaderOpts);
+  var chatbotUiConfig = {
+          /* Example of setting session attributes on parent page
+          lex: {
+            sessionAttributes: {
+              userAgent: navigator.userAgent,
+              QNAClientFilter: ''
+            }
+          }
+          */
+        };
+  loader.load(chatbotUiConfig)
+    .catch(function (error) { console.error(error); });
+</script>
+  
 <!-- HC -->
 <meta content="en-us" http-equiv="Content-Language" />
 </head>
