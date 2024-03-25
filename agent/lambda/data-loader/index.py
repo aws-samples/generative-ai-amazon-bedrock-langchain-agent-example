@@ -12,6 +12,22 @@ REGION = os.environ.get('AWS_REGION')
 
 dynamodb = boto3.client('dynamodb', region_name=REGION)
 
+def to_dynamodb_attribute(value):
+    result = value
+    if value is None:
+        result = {'S': ''}
+    elif isinstance(value, str):
+        result = {'S': value}
+    elif isinstance(value, (int, float)):
+        result = {'N': str(value)}
+    elif isinstance(value, dict):
+        nested_attributes = {}
+        for nested_key, nested_value in value.items():
+            nested_attributes[nested_key] = to_dynamodb_attribute(nested_value)
+        result = {'M': nested_attributes}
+        
+    return result
+
 def handler(event, context):
     logger.info("Received event: %s", json.dumps(event))
 
@@ -25,19 +41,7 @@ def handler(event, context):
             for claim in claims_data:
                 item = {}
                 for key, value in claim.items():
-                    if value:
-                        if isinstance(value, dict):
-                            nested_attributes = {}
-                            for nested_key, nested_value in value.items():
-                                if isinstance(nested_value, str):
-                                    nested_attributes[nested_key] = {'S': nested_value}
-                                elif isinstance(nested_value, int):
-                                    nested_attributes[nested_key] = {'N': str(nested_value)}
-                                elif isinstance(nested_value, dict):
-                                    nested_attributes[nested_key] = {'M': {k: str(v) if isinstance(v, int) else v for k, v in nested_value.items()}}
-                            item[key] = {'M': nested_attributes}
-                        else:
-                            item[key] = {'S': str(value)}
+                    item[key] = to_dynamodb_attribute(value)
                 items.append({'PutRequest': {'Item': item}})
             
             response = dynamodb.batch_write_item(
