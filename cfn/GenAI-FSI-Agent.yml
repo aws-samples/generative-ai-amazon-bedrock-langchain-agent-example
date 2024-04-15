@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "GenAI Financial Services Agent powered by Amazon Lex, Amazon Bedrock, Amazon DynamoDB, and Amazon Kendra"
+Description: "GenAI Financial Services Agent powered by Amazon Bedrock, Amazon DynamoDB, AWS Lambda, Amazon Lex, and Amazon Kendra"
 Metadata:
   LICENSE: >-
     Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -20,7 +20,7 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: Code Asset S3 Bucket, Lambda Deployment Package Keys, and Lambda Layer ARNs
+          default: S3 Bucket, Lambda and Lex Deployment Package Keys, and Lambda Layer ARNs
         Parameters:
           - S3ArtifactBucket
           - DataLoaderS3Key
@@ -29,7 +29,7 @@ Metadata:
           - BedrockLangChainPDFRWLayerArn
           - CfnresponseLayerArn
       - Label:
-          default: GitHub Secrets Manager Details
+          default: GitHub Secrets Manager Configuration
         Parameters:
           - GitHubTokenSecretName
       - Label:
@@ -37,16 +37,16 @@ Metadata:
         Parameters:
           - KendraWebCrawlerUrl
       - Label:
-          default: Amplify Source Repository
+          default: Amplify Source Repository URL
         Parameters:
           - AmplifyRepository
     ParameterLabels:
       S3ArtifactBucket:
-        default: your-code-assets-bucket-name
+        default: your-s3-bucket-name
       DataLoaderS3Key:
         default: /agent/lambda/data-loader/loader_deployment_package.zip
       LambdaHandlerS3Key:
-        default: /agent/lambda/action-groups/create_claim.zip
+        default: /agent/lambda/agent-handler/agent_deployment_package.zip
       LexBotS3Key:
         default: /agent/bot/lex.zip
       BedrockLangChainPDFRWLayerArn:
@@ -56,9 +56,9 @@ Metadata:
       GitHubTokenSecretName:
         default: your-github-token-secret-name
       KendraWebCrawlerUrl:
-        default: your-root-domain
+        default: your-kendra-root-domain
       AmplifyRepository:
-        default: https://github.com/aws-samples/generative-ai-amazon-bedrock-langchain-agent-example
+        default: your-forked-repo-url
 
 Parameters:
   S3ArtifactBucket:
@@ -66,38 +66,38 @@ Parameters:
     Type: String
     Default: your-s3-bucket-name
   DataLoaderS3Key:
-    Description: S3 Key for Data Loader
+    Description: S3 Key for DynamoDB data loader.
     Type: String
     Default: /agent/lambda/data-loader/loader_deployment_package.zip
   LambdaHandlerS3Key:
-    Description: S3 Key for Lambda Handler
+    Description: S3 Key for Lambda handler.
     Type: String
     Default: /agent/lambda/agent-handler/agent_deployment_package.zip
   LexBotS3Key:
-    Description: S3 key for Lex chatbot deployment package. 
+    Description: S3 key for Lex bot deployment package. 
     Type: String
     Default: /agent/bot/lex.zip
   BedrockLangChainPDFRWLayerArn:
-    Description: Bedrock LangChain PyPDF Lambda layer ARN
+    Description: Bedrock LangChain PDFRW Lambda layer ARN.
     Type: String
     Default: bedrock-layer-arn
   CfnresponseLayerArn:
-    Description: cfnresponse Lambda layer ARN
+    Description: cfnresponse Lambda layer ARN.
     Type: String
     Default: cfnresponse-layer-arn
   GitHubTokenSecretName:
-    Description: GitHub PAT. 
+    Description: GitHub PAT secret name. 
     Type: String
     NoEcho: true
     Default: your-github-token-secret-name
   KendraWebCrawlerUrl:
-    Description: Seed URL for Kendra WebCrawler. 
+    Description: Kendra Web Crawler root domain URL. 
     Type: String
-    Default: your-root-domain
+    Default: your-kendra-root-domain
   AmplifyRepository:
     Description: Source repository for AWS Amplify frontend. 
     Type: String
-    Default: https://github.com/aws-samples/generative-ai-amazon-bedrock-langchain-agent-example
+    Default: your-forked-repo-url
 
 Resources:
   UserPendingAccountsTable:
