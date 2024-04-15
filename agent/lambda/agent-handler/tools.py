@@ -1,79 +1,117 @@
-from langchain.agents.tools import Tool
-from langchain.agents import load_tools
-from langchain.retrievers import AmazonKendraRetriever
-from langchain.chains import RetrievalQA
-from langchain.prompts import PromptTemplate
-from langchain.llms.bedrock import Bedrock
-import boto3
-import requests
 import os
+import json
+import boto3
+from langchain.agents.tools import Tool
+from urllib.parse import urlparse
 
-# Instantiate boto3 clients and resources
-boto3_session = boto3.Session(region_name=os.environ['AWS_REGION'])
-bedrock_client = boto3_session.client(service_name="bedrock-runtime")
+bedrock = boto3.client('bedrock-runtime', region_name=os.environ['AWS_REGION'])
 
-class Tools():
+class Tools:
 
     def __init__(self) -> None:
         print("Initializing Tools")
         self.tools = [
             Tool(
                 name="AnyCompany",
-                func=self.chain_tool,
+                func=self.kendra_search,
                 description="Use this tool to answer questions about AnyCompany.",
             )
         ]
 
-    def build_chain(self):
-        print("Building Chain")
-        region = os.environ['AWS_REGION']
-        kendra_index_id = os.environ['KENDRA_INDEX_ID']
+    def parse_kendra_response(self, kendra_response):
+        """
+        Extracts the source URI from document attributes in Kendra response.
+        """
+        modified_response = kendra_response.copy()
 
-        llm = Bedrock(client=bedrock_client, model_id="anthropic.claude-v2", region_name=os.environ['AWS_REGION']) # "anthropic.claude-instant-v1"
-        llm.model_kwargs = {'max_tokens_to_sample': 350} 
+        result_items = modified_response.get('ResultItems', [])
 
-        retriever = AmazonKendraRetriever(index_id=kendra_index_id)
+        for item in result_items:
+            source_uri = None
+            if item.get('DocumentAttributes'):
+                print(f"item = {str(item)}")
+                for attribute in item['DocumentAttributes']:
+                    if attribute.get('Key') == '_source_uri':
+                        source_uri = attribute.get('Value', '')
 
-        prompt_template = """
-        \n\nHuman: The following is a friendly conversation between a human and an AI. 
-        The AI is talkative and provides lots of specific details from its context.
-        If the AI does not know the answer to a question, it truthfully says it 
-        does not know.
-        {context}
-        Instruction: Based on the above documents, provide a detailed answer and source document for, {question} Answer "don't know" if not present in the document.
+            if source_uri:
+                print(f"source_uri = {source_uri}")
+                item['source_uri'] = source_uri
+
+        return modified_response
+
+    def kendra_search(self, question):
+        """
+        Performs a Kendra search using the Query API.
+        """
+        kendra = boto3.client('kendra')
+
+        kendra_response = kendra.query(
+            IndexId=os.getenv('KENDRA_INDEX_ID'),
+            QueryText=question,
+            PageNumber=1,
+            PageSize=5  # Limit to 5 results
+        )
+
+        parsed_results = self.parse_kendra_response(kendra_response)
+
+        print(f"parsed_results = {parsed_results}")
+
+        # passing in the original question, and various Kendra responses as context into the LLM
+        return self.invokeLLM(question, parsed_results)
+
+    def invokeLLM(self, question, context):
+        """
+        Generates an answer for the user based on the Kendra response.
+        """
+        prompt_data = f"""
+        Human:
+        Imagine you are AnyCompany's Financial Services AI assistant. You respond quickly and friendly to questions from a user, providing both an answer and the sources used to find that answer.
+
+        Format your response for enhanced human readability.
+
+        At the end of your response, include the relevant sources if information from specific sources was used in your response. Use the following format for each of the sources used: [Source #: Source Title - Source Link].
+
+        Using the following context, answer the following question to the best of your ability. Do not include information that is not relevant to the question, and only provide information based on the context provided without making assumptions. 
+
+        Question: {question}
+
+        Context: {context}
+
         \n\nAssistant:
         """
 
-        PROMPT = PromptTemplate(
-          template=prompt_template, input_variables=["context", "question"]
+        # Formatting the prompt as a JSON string
+        json_prompt = json.dumps({
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 4096,
+            "temperature": 0.5,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt_data
+                        }
+                    ]
+                }
+            ]
+        })
+
+        # Invoking Claude3, passing in our prompt
+        response = bedrock.invoke_model(
+            body=json_prompt,
+            modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+            accept="application/json",
+            contentType="application/json"
         )
-        chain_type_kwargs = {"prompt": PROMPT}
-        return RetrievalQA.from_chain_type(
-          llm, 
-          chain_type="stuff", 
-          retriever=retriever, 
-          chain_type_kwargs=chain_type_kwargs,
-          return_source_documents=True
-        )
 
-    def run_chain(self, chain, prompt: str, history=[]):
-        print("Running Chain")
-        result = chain(prompt)
+        # Getting the response from Claude3 and parsing it to return to the end user
+        response_body = json.loads(response['body'].read())
+        answer = response_body['content'][0]['text']
 
-        return {
-            "answer": result['result'],
-            "source_documents": result['source_documents']
-        }
+        return answer
 
-    def chain_tool(self, input):
-        chain = self.build_chain()
-        result = self.run_chain(chain, input)
-
-        if 'source_documents' in result:
-            print('Sources:')
-            for d in result['source_documents']:
-              print(d.metadata['source'])
-
-        return result
-
+# Pass the initialized retriever and llm to the Tools class constructor
 tools = Tools().tools

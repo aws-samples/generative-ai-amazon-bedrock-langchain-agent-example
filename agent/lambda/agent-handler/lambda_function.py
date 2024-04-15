@@ -8,12 +8,10 @@ import logging
 import datetime
 import dateutil.parser
 
-from boto3.dynamodb.conditions import Key
-from langchain.llms.bedrock import Bedrock
-from langchain.chat_models import BedrockChat
-from langchain.schema import HumanMessage
 from chat import Chat
 from fsi_agent import FSIAgent
+from boto3.dynamodb.conditions import Key
+from langchain.llms.bedrock import Bedrock
 
 # Create reference to DynamoDB tables
 loan_application_table_name = os.environ['USER_PENDING_ACCOUNTS_TABLE']
@@ -43,7 +41,7 @@ def elicit_slot(session_attributes, active_contexts, intent, slot_to_elicit, mes
             'sessionAttributes': session_attributes,
             'dialogAction': {
                 'type': 'ElicitSlot',
-                'slotToElicit': slot_to_elicit
+                'slotToElicit': slot_to_elicit 
             },
             'intent': intent,
         },
@@ -197,7 +195,6 @@ def build_slot(intent_request, slot_to_build, slot_value):
     }
 
 def build_validation_result(isvalid, violated_slot, message_content):
-    print("Build Validation")
     return {
         'isValid': isvalid,
         'violatedSlot': violated_slot,
@@ -209,10 +206,10 @@ def build_validation_result(isvalid, violated_slot, message_content):
 def isvalid_date(date):
     try:
         dateutil.parser.parse(date, fuzzy=True)
-        print("TRUE DATE")
+        print("TRUE DATE") # TODO
         return True
     except ValueError as e:
-        print("DATE PARSER ERROR = " + str(e))
+        print("DATE PARSER ERROR = " + str(e)) # TODO
         return False
 
 def isvalid_yes_or_no(word):
@@ -415,26 +412,20 @@ def verify_identity(intent_request):
                 )
 
                 # TODO: Customize account readout based on account type
-                messages = []
+                message = ""
                 items = response['Items']
-
                 for item in items:
-                    if item['planName'].lower() == 'mortgage':
-                        message = "Your mortgage account summary includes a ${:,.2f} loan at {}% interest with ${:,.2f} of unpaid principal. Your next payment of ${:,.2f} is scheduled for {}.".format(float(item['loanAmount']), float(item['loanInterest']), float(item['unpaidPrincipal']), float(item['amountDue']), item['dueDate'])
-                    elif item['planName'].lower() == 'checking':
-                        message = "I see you have a Checking account with AnyCompany. Your account balance is ${:,.2f} and your next payment amount of ${:,.2f} is scheduled for {}.".format(float(item['unpaidPrincipal']), float(item['paymentAmount']), item['dueDate'])
-                    elif item['planName'].lower() == 'loan':
-                        message = "I see you have a Loan account with AnyCompany. Your account balance is ${:,.2f} and your next payment amount of ${:,.2f} is scheduled for {}.".format(float(item['unpaidPrincipal']), float(item['paymentAmount']), item['dueDate'])
-                    
-                    messages.append(message)
-
-                # Convert messages list to a single string
-                message = '\n'.join(messages)
-
-                # Return the response without JSON serialization
+                    if item['planName'] == 'mortgage' or item['planName'] == 'Mortgage':
+                        message = "Your mortgage account summary includes a ${:,} loan at {}% interest with ${:,} of unpaid principal. Your next payment of ${:,} is scheduled for {}.".format(item['loanAmount'], item['loanInterest'], item['unpaidPrincipal'], item['amountDue'], item['dueDate'])
+                    elif item['planName'] == 'Checking' or item['planName'] == 'checking':
+                        message = "I see you have a Savings account with AnyCompany. Your account balance is ${:,} and your next payment \
+                            amount of ${:,} is scheduled for {}.".format(item['unpaidPrincipal'], item['paymentAmount'], item['dueDate'])
+                    elif item['planName'] == 'Loan' or item['planName'] == 'loan':
+                            message = "I see you have a Loan account with AnyCompany. Your account balance is ${:,} and your next payment \
+                            amount of ${:,} is scheduled for {}.".format(item['unpaidPrincipal'], item['paymentAmount'], item['dueDate'])
                 return elicit_intent(intent_request, session_attributes, 
                     'Thank you for confirming your username and PIN, {}. {}'.format(username, message)
-                )
+                    )
 
             except Exception as e:
                 print(e)
@@ -777,24 +768,19 @@ def loan_calculator(intent_request):
         'This is where you would implement LoanCalculator intent fulfillment.'
     )
 
+# from langchain.llms.bedrock import Bedrock
+
 def invoke_fm(prompt):
     """
     Invokes Foundational Model endpoint hosted on Amazon Bedrock and parses the response.
     """
-    print("DEBUG: Invoking Foundational Model with prompt:", prompt)
     chat = Chat(prompt)
-    llm = Bedrock(client=bedrock_client, model_id="anthropic.claude-v2", region_name=os.environ['AWS_REGION']) # "anthropic.claude-instant-v1"
+    llm = Bedrock(client=bedrock_client, model_id="anthropic.claude-v2:1", region_name=os.environ['AWS_REGION']) # anthropic.claude-instant-v1 / anthropic.claude-3-sonnet-20240229-v1:0
     llm.model_kwargs = {'max_tokens_to_sample': 350}
     lex_agent = FSIAgent(llm, chat.memory)
-    formatted_prompt = "\n\nHuman: " + prompt + " \n\nAssistant:"
     
-    try:
-        message = lex_agent.run(input=formatted_prompt)
-    except ValueError as e:
-        message = str(e)
-        if not message.startswith("Could not parse LLM output:"):
-            raise e
-        message = message.removeprefix("Could not parse LLM output: `").removesuffix("`")
+    # formatted_prompt = "\n\nHuman: " + prompt + " \n\nAssistant:"
+    message = lex_agent.run(input=prompt)
 
     return message
 
@@ -808,8 +794,9 @@ def genai_intent(intent_request):
     if intent_request['invocationSource'] == 'DialogCodeHook':
         prompt = intent_request['inputTranscript']
         output = invoke_fm(prompt)
-        
-        return elicit_intent(intent_request, session_attributes, output)
+        print("FSI Agent response: " + str(output))
+
+    return elicit_intent(intent_request, session_attributes, output)
 
 # --- Intents ---
 
@@ -821,7 +808,6 @@ def dispatch(intent_request):
     username = slots['UserName'] if 'UserName' in slots else None
     intent_name = intent_request['sessionState']['intent']['name']
 
-    print("Here")
     if intent_name == 'VerifyIdentity':
         return verify_identity(intent_request)
     elif intent_name == 'LoanApplication':

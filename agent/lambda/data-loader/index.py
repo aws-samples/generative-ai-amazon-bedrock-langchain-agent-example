@@ -25,19 +25,20 @@ def handler(event, context):
             for claim in claims_data:
                 item = {}
                 for key, value in claim.items():
-                    if value:
-                        if isinstance(value, dict):
-                            nested_attributes = {}
-                            for nested_key, nested_value in value.items():
-                                if isinstance(nested_value, str):
-                                    nested_attributes[nested_key] = {'S': nested_value}
-                                elif isinstance(nested_value, int):
-                                    nested_attributes[nested_key] = {'N': str(nested_value)}
-                                elif isinstance(nested_value, dict):
-                                    nested_attributes[nested_key] = {'M': {k: str(v) if isinstance(v, int) else v for k, v in nested_value.items()}}
-                            item[key] = {'M': nested_attributes}
-                        else:
-                            item[key] = {'S': str(value)}
+                    if value is None:
+                        result = {'S': ''}
+                    elif isinstance(value, str):
+                        result = {'S': value}
+                    elif isinstance(value, (int, float)):
+                        result = {'N': str(value)}
+                    elif isinstance(value, dict):
+                        nested_attributes = {}
+                        for nested_key, nested_value in value.items():
+                            nested_attributes[nested_key] = to_dynamodb_attribute(nested_value)
+                        result = {'M': nested_attributes}
+
+                    item[key] = result
+
                 items.append({'PutRequest': {'Item': item}})
             
             response = dynamodb.batch_write_item(
@@ -45,6 +46,7 @@ def handler(event, context):
                     user_accounts_table_name: items
                 }
             )
+            
             logger.info("Batch write response: %s", json.dumps(response))
             cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData={})
         except Exception as e:
@@ -53,7 +55,6 @@ def handler(event, context):
 
     elif request_type == 'Delete':
         cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData={})
-
 
     return {
         'statusCode': 200,
