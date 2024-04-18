@@ -421,20 +421,6 @@ Resources:
             - 'kendra:BatchDeleteDocument'
             Resource: '*'
 
-  KendraS3DataSource:
-    DependsOn: KendraIndex
-    Type: AWS::Kendra::DataSource
-    Properties:
-      Name: !Sub ${AWS::StackName}-S3DataSource
-      Type: S3
-      IndexId: !GetAtt KendraIndex.Id
-      RoleArn: !GetAtt KendraDataSourceRole.Arn
-      DataSourceConfiguration:
-        S3Configuration:
-          BucketName: !Ref S3ArtifactBucket
-          InclusionPatterns: 
-            - "agent/assets/*.csv"
-
   KendraWebCrawler:
     DependsOn: KendraIndex
     Type: AWS::Kendra::DataSource
@@ -494,7 +480,6 @@ Resources:
         IdleSessionTTLInSeconds: 900
         RoleArn: !GetAtt LexBotRole.Arn
 
-
 Outputs:
   AmplifyDemoWebsite:
     Value: !Join ['', ['main.', !GetAtt AmplifyApp.DefaultDomain]]
@@ -504,10 +489,10 @@ Outputs:
     Value: !GetAtt AmplifyBranch.BranchName
   KendraIndexID:
     Value: !GetAtt KendraIndex.Id
-  KendraS3DataSourceID:
-    Value: !GetAtt KendraS3DataSource.Id
   KendraWebCrawlerDataSourceID:
     Value: !GetAtt KendraWebCrawler.Id
+  KendraDataSourceRoleARN:
+    Value: !GetAtt KendraDataSourceRole.Arn
   LambdaARN:
     Value: !GetAtt AgentHandlerFunction.Arn
   LexBotID:

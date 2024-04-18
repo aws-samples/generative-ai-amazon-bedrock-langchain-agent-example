@@ -54,6 +54,7 @@ ParameterKey=AmplifyRepository,ParameterValue=$AMPLIFY_REPOSITORY \
 
 aws cloudformation describe-stacks --stack-name $STACK_NAME --region $AWS_REGION --query "Stacks[0].StackStatus"
 aws cloudformation wait stack-create-complete --stack-name $STACK_NAME --region $AWS_REGION
+aws cloudformation describe-stacks --stack-name $STACK_NAME --region $AWS_REGION --query "Stacks[0].StackStatus"
 
 export LEX_BOT_ID=$(aws cloudformation describe-stacks \
     --stack-name $STACK_NAME \
@@ -74,17 +75,24 @@ export KENDRA_INDEX_ID=$(aws cloudformation describe-stacks \
     --region $AWS_REGION \
     --query 'Stacks[0].Outputs[?OutputKey==`KendraIndexID`].OutputValue' --output text)
 
-export KENDRA_S3_DATA_SOURCE_ID=$(aws cloudformation describe-stacks \
+export KENDRA_DATA_SOURCE_ROLE_ARN=$(aws cloudformation describe-stacks \
     --stack-name $STACK_NAME \
     --region $AWS_REGION \
-    --query 'Stacks[0].Outputs[?OutputKey==`KendraS3DataSourceID`].OutputValue' --output text)
+    --query 'Stacks[0].Outputs[?OutputKey==`KendraDataSourceRoleARN`].OutputValue' --output text)
 
 export KENDRA_WEBCRAWLER_DATA_SOURCE_ID=$(aws cloudformation describe-stacks \
     --stack-name $STACK_NAME \
     --region $AWS_REGION \
     --query 'Stacks[0].Outputs[?OutputKey==`KendraWebCrawlerDataSourceID`].OutputValue' --output text)
 
-aws kendra start-data-source-sync-job --id $KENDRA_S3_DATA_SOURCE_ID --index-id $KENDRA_INDEX_ID --region $AWS_REGION
+aws kendra create-faq \
+    --index-id $KENDRA_INDEX_ID \
+    --name $STACK_NAME-S3Faq \
+    --description "AnyCompany S3 FAQ" \
+    --s3-path Bucket=$S3_ARTIFACT_BUCKET_NAME,Key="agent/assets/AnyCompany-FAQs.csv" \
+    --role-arn $KENDRA_DATA_SOURCE_ROLE_ARN \
+    --file-format "CSV_WITH_HEADER" \
+    --region $AWS_REGION
 
 aws kendra start-data-source-sync-job --id $KENDRA_WEBCRAWLER_DATA_SOURCE_ID --index-id $KENDRA_INDEX_ID --region $AWS_REGION
 

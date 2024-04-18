@@ -32,11 +32,11 @@ class Tools:
                 print(f"item = {str(item)}")
                 for attribute in item['DocumentAttributes']:
                     if attribute.get('Key') == '_source_uri':
-                        source_uri = attribute.get('Value', '')
+                        source_uri = attribute.get('Value', {}).get('StringValue', '')
 
             if source_uri:
                 print(f"source_uri = {source_uri}")
-                item['source_uri'] = source_uri
+                item['_source_uri'] = source_uri
 
         return modified_response
 
