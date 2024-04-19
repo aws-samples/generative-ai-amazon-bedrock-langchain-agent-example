@@ -70,7 +70,7 @@ Thought: Do I need to use a tool? No
 FSI Agent: [answer and source documents]
 ~~~~
 
-3. As part of the agent's different reasoning paths and self-evaluating choices to decide the next course of action, it has the ability to access synthetic customer data sources through an Amazon Kendra index. Using Kendra, the agent performs contextual search across a wide range of content types, including documents, FAQs, knowledge bases, manuals, and websites - Please refer to the list of [Kendra supported Data Sources](https://docs.aws.amazon.com/kendra/latest/dg/hiw-data-source.html).
+3. As part of the agent's different reasoning paths and self-evaluating choices to decide the next course of action, it has the ability to access synthetic customer data sources using an Amazon Kendra index. Using Kendra, the agent performs contextual search across a wide range of content types, including documents, FAQs, knowledge bases, manuals, and websites - Please refer to the list of [Kendra supported Data Sources](https://docs.aws.amazon.com/kendra/latest/dg/hiw-data-source.html).
 
    The agent has the power to use this tool to provide opinionated responses to user prompts that should be answered using an authoritative, customer-provided knowledge library, instead of the more general knowledge corpus used to pretrain the Bedrock FM.
 
