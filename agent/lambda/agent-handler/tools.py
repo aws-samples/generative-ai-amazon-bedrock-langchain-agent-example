@@ -29,13 +29,12 @@ class Tools:
         for item in result_items:
             source_uri = None
             if item.get('DocumentAttributes'):
-                print(f"item = {str(item)}")
                 for attribute in item['DocumentAttributes']:
                     if attribute.get('Key') == '_source_uri':
                         source_uri = attribute.get('Value', {}).get('StringValue', '')
 
             if source_uri:
-                print(f"source_uri = {source_uri}")
+                print(f"Amazon Kendra Source URI: {source_uri}")
                 item['_source_uri'] = source_uri
 
         return modified_response
@@ -55,7 +54,7 @@ class Tools:
 
         parsed_results = self.parse_kendra_response(kendra_response)
 
-        print(f"parsed_results = {parsed_results}")
+        print(f"Amazon Kendra Query Item: {parsed_results}")
 
         # passing in the original question, and various Kendra responses as context into the LLM
         return self.invokeLLM(question, parsed_results)
