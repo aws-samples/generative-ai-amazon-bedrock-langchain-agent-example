@@ -61,10 +61,10 @@ The solution deployment automation script allows for automated solution provisio
  - Two Lambda functions:
 	- Agent handler - Contains the LangChain conversational agent logic that can intelligently employ a variety of tools based on user input.
 	- Data loader - Loads example customer account data into _UserExistingAccountsTable_ and is invoked as a custom CloudFormation resource during stack creation.
- - A Lambda layer for Amazon Bedrock Boto3, LangChain, and pdfrw libraries, built from [requirements.txt](../agent/lambda-layers/requirements.txt). The layer supplies LangChain's FM library with an Amazon Bedrock model as the underlying FM and provides pdfrw as an open source PDF library for creating and modifying PDF files.
+ - A Lambda layer for Amazon Bedrock Boto3, LangChain, and pdfrw libraries, built from [requirements.txt](../agent/lambda/lambda-layers/requirements.txt). The layer supplies LangChain's FM library with an Amazon Bedrock model as the underlying FM and provides pdfrw as an open source PDF library for creating and modifying PDF files.
  - An Amazon Kendra Index: Provides a searchable index of customer authoritative information, including documents, FAQs, knowledge repositories, manuals, websites, and more.
  - Two Kendra Data Sources:
-	- Amazon S3 - Hosts an [example customer FAQ document](../agent/assets/Octank-Financial-FAQs.csv).
+	- Amazon S3 - Hosts an [example customer FAQ document](../agent/assets/AnyCompany-FAQs.csv).
 	- Amazon Kendra Web Crawler - Configured with a root domain that emulates the customer-specific website (for example, _<your-company>.com_).
  - [AWS Identity and Access Management](https://aws.amazon.com/iam/) (IAM) permissions for the preceding resources.
 
