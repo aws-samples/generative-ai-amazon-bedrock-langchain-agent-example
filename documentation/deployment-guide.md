@@ -53,7 +53,7 @@ The solution deployment automation script allows for automated solution provisio
 - An AWS Amplify website to simulate your front-end environment.
 - An Amazon Lex bot configured through a bot import deployment package.
 - Four DynamoDB tables:
-	- _UserPendingAccountsTable_ - Records pending transactions (for example, loan applications).
+	- _UserPendingAccountsTable_ - Records pending transactions (for example, mortgage applications).
 	- _UserExistingAccountsTable_ - Contains user account information (e.g., mortgage account summary).
 	- _ConversationIndexTable_ - Tracks conversation state.
 	- _ConversationTable_ - Stores conversation history.

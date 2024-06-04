@@ -16,20 +16,27 @@ conversation_table_name = os.environ.get('CONVERSATION_TABLE')
 
 class Chat():
 
-    def __init__(self, event):
-        print("Initializing Chat with FSI Agent")
+    def __init__(self, event, session_id):
+        print(f"Initializing FSI Agent chat with session ID: {session_id}")
         self.set_user_id(event)
+        self.set_session_id(session_id)
         self.set_chat_index()
-        self.set_memory(event)
+        self.set_memory(event, session_id)
         self.create_new_chat()
 
-    def set_memory(self, event):
-        conversation_id = self.user_id + "-" + str(self.chat_index) 
+    def set_memory(self, event, session_id):
+        # Set up session id
+        if session_id != self.session_id:
+            self.set_session_id(session_id)
+        conversation_id = self.session_id
         
         # Set up conversation history
         self.message_history = DynamoDBChatMessageHistory(table_name=conversation_table_name, session_id=conversation_id)
-        self.message_history.add_user_message(event)
-        
+        if 'Human' in event:
+            self.message_history.add_user_message(event['Human'])
+        elif 'Assistant' in event:
+            self.message_history.add_ai_message(event['Assistant'])
+
         # Set up conversation memory
         self.memory = ConversationBufferMemory(
             ai_prefix="Assistant",
@@ -61,6 +68,9 @@ class Chat():
 
     def set_user_id(self, event):
         self.user_id = "Demo User"
+
+    def set_session_id(self, session_id):
+        self.session_id = session_id
 
     def set_chat_index(self):
         self.chat_index = self.get_chat_index()
