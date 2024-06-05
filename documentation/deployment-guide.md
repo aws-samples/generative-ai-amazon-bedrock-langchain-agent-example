@@ -84,7 +84,7 @@ chmod u+x create-stack.sh
 export AMPLIFY_REPOSITORY=<YOUR-FORKED-REPOSITORY-URL> # Forked repository URL from Pre-Deployment (Exclude '.git' from repository URL)
 export GITHUB_PAT=<YOUR-GITHUB-PAT> # GitHub PAT copied from Pre-Deployment
 export STACK_NAME=<YOUR-STACK-NAME> # Stack name must be lower case for S3 bucket naming convention
-export KENDRA_WEBCRAWLER_URL=<YOUR-WEBSITE-ROOT-DOMAIN> # Public or internal HTTPS website for Kendra to index via Web Crawler (e.g., https://www.investopedia.com/) - Please see https://docs.aws.amazon.com/kendra/latest/dg/data-source-web-crawler.html
+export KNOWLEDGE_BUCKET_NAME=<YOUR-KNOWLEDGE-BUCKET-NAME> # S3 bucket name for storing knowledge documents
 export AWS_REGION=<YOUR-STACK-REGION> # Stack deployment region
 ```
 

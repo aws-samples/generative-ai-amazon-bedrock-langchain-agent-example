@@ -33,9 +33,9 @@ Metadata:
         Parameters:
           - GitHubTokenSecretName
       - Label:
-          default: Kendra Web Crawler Root Domain
+          default: S3 Knowledge Bucket
         Parameters:
-          - KendraWebCrawlerUrl
+          - KnowledgeBucketName
       - Label:
           default: Amplify Source Repository URL
         Parameters:
@@ -55,8 +55,8 @@ Metadata:
         default: cfnresponse-layer-arn
       GitHubTokenSecretName:
         default: your-github-token-secret-name
-      KendraWebCrawlerUrl:
-        default: your-kendra-root-domain
+      KnowlegeBucketName:
+        default: your-knowledge-bucket-name
       AmplifyRepository:
         default: your-forked-repo-url
 
@@ -90,10 +90,10 @@ Parameters:
     Type: String
     NoEcho: true
     Default: your-github-token-secret-name
-  KendraWebCrawlerUrl:
-    Description: Kendra Web Crawler root domain URL. 
+  KnowledgeBucketName:
+    Description: S3 Bucket Name for Knowledge Documents.
     Type: String
-    Default: your-kendra-root-domain
+    Default: your-knowledge-root-domain
   AmplifyRepository:
     Description: Source repository for AWS Amplify frontend. 
     Type: String
@@ -421,25 +421,22 @@ Resources:
             - 'kendra:BatchDeleteDocument'
             Resource: '*'
 
-  KendraWebCrawler:
-    DependsOn: KendraIndex
+  KendraS3DataSource:
     Type: AWS::Kendra::DataSource
     Properties:
-      Name: !Sub ${AWS::StackName}-WebCrawler
-      Type: WEBCRAWLER
+      Name: !Sub ${AWS::StackName}-KendraS3DataSouce
+      Type: S3
       IndexId: !GetAtt KendraIndex.Id
       RoleArn: !GetAtt KendraDataSourceRole.Arn
+      S3Configuration:
+        BucketName: !Ref KnowledgeBucketName
+        InclusionPrefixes:
+          - "documents/"
       DataSourceConfiguration:
-        WebCrawlerConfiguration: 
-            CrawlDepth: 3
-            MaxContentSizePerPageInMegaBytes: 50
-            MaxLinksPerPage: 20
-            MaxUrlsPerMinuteCrawlRate: 100
-            Urls: 
-              SeedUrlConfiguration:
-                SeedUrls: 
-                  - !Ref KendraWebCrawlerUrl
-                WebCrawlerMode: SUBDOMAINS
+        S3Configuration:
+          BucketName: !Ref KnowledgeBucketName
+          InclusionPrefixes:
+            - "documents/"
 
   LexBotRole:
     Type: AWS::IAM::Role
@@ -489,8 +486,8 @@ Outputs:
     Value: !GetAtt AmplifyBranch.BranchName
   KendraIndexID:
     Value: !GetAtt KendraIndex.Id
-  KendraWebCrawlerDataSourceID:
-    Value: !GetAtt KendraWebCrawler.Id
+  KendraS3DataSourceId:
+    Value: !GetAtt KendraS3DataSource.Id
   KendraDataSourceRoleARN:
     Value: !GetAtt KendraDataSourceRole.Arn
   LambdaARN:
