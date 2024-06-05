@@ -428,15 +428,9 @@ Resources:
       Type: S3
       IndexId: !GetAtt KendraIndex.Id
       RoleArn: !GetAtt KendraDataSourceRole.Arn
-      S3Configuration:
-        BucketName: !Ref KnowledgeBucketName
-        InclusionPrefixes:
-          - "documents/"
       DataSourceConfiguration:
         S3Configuration:
           BucketName: !Ref KnowledgeBucketName
-          InclusionPrefixes:
-            - "documents/"
 
   LexBotRole:
     Type: AWS::IAM::Role
