@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "GenAI Financial Services Agent powered by Amazon Bedrock, Amazon DynamoDB, AWS Lambda, Amazon Lex, and Amazon Kendra"
+Description: "Test GenAI PoC Project"
 Metadata:
   LICENSE: >-
     Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
