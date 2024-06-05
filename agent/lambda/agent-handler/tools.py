@@ -101,7 +101,7 @@ class Tools:
         # Invoking Claude3, passing in our prompt
         response = bedrock.invoke_model(
             body=json_prompt,
-            modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+            modelId="anthropic.claude-3-haiku-20240307-v1:0",
             accept="application/json",
             contentType="application/json"
         )
