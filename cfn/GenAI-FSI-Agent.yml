@@ -422,6 +422,7 @@ Resources:
             Resource: '*'
 
   KendraS3DataSource:
+    DependsOn: KendraIndex
     Type: AWS::Kendra::DataSource
     Properties:
       Name: !Sub ${AWS::StackName}-KendraS3DataSouce
