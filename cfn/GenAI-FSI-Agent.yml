@@ -411,6 +411,8 @@ Resources:
             Resource:
             - !Sub arn:aws:s3:::${S3ArtifactBucket}
             - !Sub arn:aws:s3:::${S3ArtifactBucket}/*
+            - !Sub arn:aws:s3:::${KnowledgeBucketName}
+            - !Sub arn:aws:s3:::${KnowledgeBucketName}/*
           - Effect: Allow
             Action:
             - 'kendra:PutPrincipalMapping'
