@@ -12,6 +12,7 @@ from chat import Chat
 from fsi_agent import FSIAgent
 from boto3.dynamodb.conditions import Key
 from langchain.llms.bedrock import Bedrock
+from langchain.chains import ConversationChain
 
 # Create reference to DynamoDB tables and S3 bucket
 loan_application_table_name = os.environ['USER_PENDING_ACCOUNTS_TABLE']
@@ -77,12 +78,12 @@ def elicit_intent(intent_request, session_attributes, message):
                 'imageResponseCard': {
                     "buttons": [
                         {
-                            "text": "Loan Application",
-                            "value": "Loan Application"
+                            "text": "Mortgage Application",
+                            "value": "Mortgage Application"
                         },
                         {
-                            "text": "Loan Calculator",
-                            "value": "Loan Calculator"
+                            "text": "Mortgage Calculator",
+                            "value": "Mortgage Calculator"
                         },
                         {
                             "text": "Ask GenAI",
@@ -151,7 +152,7 @@ def isvalid_date(date):
         dateutil.parser.parse(date, fuzzy=True)
         return True
     except ValueError as e:
-        print("DATE PARSER ERROR: " + str(e)) # TODO
+        print("Date parser error: " + str(e))
         return False
 
 def isvalid_yes_or_no(word):
@@ -315,6 +316,9 @@ def validate_pin(intent_request, slots):
 def verify_identity(intent_request):
     """
     Performs dialog management and fulfillment for username verification.
+    Beyond fulfillment, the implementation for this intent demonstrates the following:
+    1) Use of elicitSlot in slot validation and re-prompting.
+    2) Use of sessionAttributes {UserName} to pass information that can be used to guide conversation.
     """
     slots = intent_request['sessionState']['intent']['slots']
     pin = try_ex(slots['Pin'])
@@ -388,6 +392,7 @@ def validate_loan_application(intent_request, slots):
 
     confirmation_status = intent_request['sessionState']['intent']['confirmationState']
     session_attributes = intent_request['sessionState'].get("sessionAttributes") or {}
+    session_id = intent_request['sessionId']
     active_contexts = {}
 
     if username is not None:
@@ -414,7 +419,7 @@ def validate_loan_application(intent_request, slots):
                 return build_validation_result(False, 'LoanValue', 'Please enter a value greater than $0.')
         else:
             prompt = "The user was just asked to provide their loan value on a loan application and this was their response: " + intent_request['inputTranscript']
-            message = invoke_agent(prompt)
+            message = invoke_agent(prompt, session_id)
             reply = message + " \n\nWhat is your desired loan amount?"
 
             return build_validation_result(False, 'LoanValue', reply)
@@ -431,7 +436,7 @@ def validate_loan_application(intent_request, slots):
                 return build_validation_result(False, 'MonthlyIncome', 'Monthly income amount must be greater than $0. Please try again.')
         else:
             prompt = "The user was just asked to provide their monthly income on a loan application and this was their response: " + intent_request['inputTranscript']
-            message = invoke_agent(prompt)
+            message = invoke_agent(prompt, session_id)
             reply = message + " \n\nWhat is your monthly income?"
 
             return build_validation_result(False, 'MonthlyIncome', reply)
@@ -445,7 +450,7 @@ def validate_loan_application(intent_request, slots):
     if work_history is not None:
         if not isvalid_yes_or_no(work_history):
             prompt = "The user was just asked to confirm their continuous two year work history on a loan application and this was their response: " + intent_request['inputTranscript']
-            message = invoke_agent(prompt)
+            message = invoke_agent(prompt, session_id)
             reply = message + " \n\nDo you have a two-year continuous work history?"
 
             return build_validation_result(False, 'WorkHistory', reply)
@@ -462,7 +467,7 @@ def validate_loan_application(intent_request, slots):
                 return build_validation_result(False, 'CreditScore', 'Credit score entries must be between 300 and 850. Please enter a valid credit score.')
         else:
             prompt = "The user was just asked to provide their credit score on a loan application and this was their response: " + intent_request['inputTranscript']
-            message = invoke_agent(prompt)
+            message = invoke_agent(prompt, session_id)
             reply = message + " \n\nWhat do you think your current credit score is?"
 
             return build_validation_result(False, 'CreditScore', reply)
@@ -479,7 +484,7 @@ def validate_loan_application(intent_request, slots):
                 return build_validation_result(False, 'HousingExpense', 'Your housing expense must be a value greater than or equal to $0. Please try again.')
         else:
             prompt = "The user was just asked to provide their monthly housing expense on a loan application and this was their response: " + intent_request['inputTranscript']
-            message = invoke_agent(prompt)
+            message = invoke_agent(prompt, session_id)
             reply = message + " \n\nHow much are you currently paying for housing each month?"
 
             return build_validation_result(False, 'HousingExpense', reply)
@@ -496,7 +501,7 @@ def validate_loan_application(intent_request, slots):
                 return build_validation_result(False, 'DebtAmount', 'Your debt amount must be a value greater than or equal to $0. Please try again.')
         else:
             prompt = "The user was just asked to provide their monthly debt amount on a loan application and this was their response: " + intent_request['inputTranscript']
-            message = invoke_agent(prompt)
+            message = invoke_agent(prompt, session_id)
             reply = message + " \n\nWhat is your estimated credit card or student loan debt?"
 
             return build_validation_result(False, 'DebtAmount', reply)
@@ -513,7 +518,7 @@ def validate_loan_application(intent_request, slots):
                 return build_validation_result(False, 'DownPayment', 'Your estimate down payment must be a value greater than or equal to $0. Please try again.')
         else:
             prompt = "The user was just asked to provide their estimated down payment on a loan application and this was their response: " + intent_request['inputTranscript']
-            message = invoke_agent(prompt)
+            message = invoke_agent(prompt, session_id)
             reply = message + " \n\nWhat do you have saved for a down payment?"
 
             return build_validation_result(False, 'DownPayment', reply)
@@ -527,7 +532,7 @@ def validate_loan_application(intent_request, slots):
     if coborrow is not None:
         if not isvalid_yes_or_no(coborrow):
             prompt = "The user was just asked to confirm if they will have a co-borrow on a loan application and this was their response: " + intent_request['inputTranscript']
-            message = invoke_agent(prompt)
+            message = invoke_agent(prompt, session_id)
             reply = message + " \n\nDo you have a co-borrower?"
 
             return build_validation_result(False, 'Coborrow', reply)
@@ -538,14 +543,7 @@ def validate_loan_application(intent_request, slots):
             "Do you have a co-borrower?"
         )
 
-    if closing_date is not None:
-        if not isvalid_date(closing_date):
-            prompt = "The user was just asked to provide their real estate closing date on a loan application and this was their response: " + intent_request['inputTranscript']
-            message = invoke_agent(prompt)
-            reply = message + " \n\nWhen are you looking to close?"
-
-            return build_validation_result(False, 'ClosingDate', reply)  
-    else:
+    if closing_date is None:
         return build_validation_result(
             False,
             'ClosingDate',
@@ -695,17 +693,23 @@ def loan_calculator(intent_request):
         'This is where you would implement LoanCalculator intent fulfillment.'
     )
 
-def invoke_agent(prompt):
+def invoke_agent(prompt, session_id):
     """
     Invokes Amazon Bedrock-powered LangChain agent with 'prompt' input.
     """
-    chat = Chat(prompt)
+    chat = Chat({'Human': prompt}, session_id)
     llm = Bedrock(client=bedrock_client, model_id="anthropic.claude-3-haiku-20240307-v1:0", region_name=os.environ['AWS_REGION']) # anthropic.claude-instant-v1 / anthropic.claude-3-sonnet-20240229-v1:0
     llm.model_kwargs = {'max_tokens_to_sample': 350}
     lex_agent = FSIAgent(llm, chat.memory)
     
     # formatted_prompt = "\n\nHuman: " + prompt + " \n\nAssistant:"
     message = lex_agent.run(input=prompt)
+
+    # summarize response and save in memory
+    formatted_prompt = "\n\nHuman: " + "Summarize the following within 50 words: " + message + " \n\nAssistant:"
+    conversation = ConversationChain(llm=llm)
+    ai_response_recap = conversation.predict(input=formatted_prompt)
+    chat.set_memory({'Assistant': ai_response_recap}, session_id)
 
     return message
 
@@ -715,10 +719,11 @@ def genai_intent(intent_request):
     Sends user utterance to the 'invoke_agent' method call.
     """
     session_attributes = intent_request['sessionState'].get("sessionAttributes") or {}
+    session_id = intent_request['sessionId']
     
     if intent_request['invocationSource'] == 'DialogCodeHook':
         prompt = intent_request['inputTranscript']
-        output = invoke_agent(prompt)
+        output = invoke_agent(prompt, session_id)
         print("FSI Agent response: " + str(output))
 
     return elicit_intent(intent_request, session_attributes, output)
