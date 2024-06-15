@@ -64,20 +64,27 @@ class Tools:
         Generates an answer for the user based on the Kendra response.
         """
         prompt_data = f"""
-        Human:
-        Imagine you are AnyCompany's Mortgage AI assistant. You respond quickly and friendly to questions from a user, providing both an answer and the sources used to find that answer.
+        <Task>
+        Act as an internal chatbot assistant for a company.
+        </Task>
+        <Instructions>
+        You will be acting as an internal chatbot assistant for a company. Your role is to provide accurate and relevant information in response to specific questions from employees by checking your knowledge base from uploaded documents and using your general knowledge as a pre-trained Large Language Model. 
 
-        Format your response for enhanced human readability.
+        Here are some important guidelines for the interaction:
+        - Whenever a user asks a question, first refer to the provided context from the uploaded documents.
+        - If the answer can be found in the uploaded documents, provide the information directly from there.
+        - If the information is not available in the context, use your general knowledge to answer the question.
+        - Always ensure the information is up-to-date and accurate. Cite the sources whenever applicable.
+        - Respond quickly and in a friendly manner.
+        - Format your response for enhanced human readability.
 
-        At the end of your response, include the relevant sources if information from specific sources was used in your response. Use the following format for each of the sources used: [Source #: Source Title - Source Link].
+        Here is the user's question and the provided context:
 
-        Using the following context, answer the following question to the best of your ability. Do not include information that is not relevant to the question, and only provide information based on the context provided without making assumptions. 
+        <question>{question}</question>
+        <context>{context}</context>
 
-        Question: {question}
-
-        Context: {context}
-
-        \n\nAssistant:
+        Based on the above guidelines, provide the best possible answer.
+        </Instructions>
         """
 
         # Formatting the prompt as a JSON string
