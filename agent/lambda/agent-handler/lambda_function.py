@@ -702,7 +702,6 @@ def invoke_agent(prompt, session_id):
     llm.model_kwargs = {'max_tokens_to_sample': 350}
     lex_agent = FSIAgent(llm, chat.memory)
     
-    # formatted_prompt = "\n\nHuman: " + prompt + " \n\nAssistant:"
     message = lex_agent.run(input=prompt)
 
     # summarize response and save in memory
