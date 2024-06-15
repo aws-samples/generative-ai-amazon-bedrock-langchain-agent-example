@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 
 bedrock = boto3.client('bedrock-runtime', region_name=os.environ['AWS_REGION'])
 
+
 class Tools:
 
     def __init__(self) -> None:
@@ -90,8 +91,8 @@ class Tools:
         # Formatting the prompt as a JSON string
         json_prompt = json.dumps({
             "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": 4096,
-            "temperature": 0.5,
+            "max_tokens": 3500,
+            "temperature": 0.4,
             "messages": [
                 {
                     "role": "user",
@@ -118,6 +119,7 @@ class Tools:
         answer = response_body['content'][0]['text']
 
         return answer
+
 
 # Pass the initialized retriever and llm to the Tools class constructor
 tools = Tools().tools
