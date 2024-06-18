@@ -22,7 +22,7 @@ This sample solution creates a generative AI financial services agent powered by
 
 - **Provide Personalized Responses** - Query DynamoDB for customer account information, such as mortgage summary details, due balance, and next payment date.
 - **Access General Knowledge** - Harness the agent’s reasoning logic in tandem with the vast amounts of data used to pretrain the different FMs provided through Bedrock to produce replies for any customer prompt.
-- **Curate Opinionated Answers** - Inform agent responses using a Kendra Index configured with authoritative data sources: customer documents stored in [Amazon Simple Storage Service](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html) (S3) and [Web Crawler](https://docs.aws.amazon.com/kendra/latest/dg/data-source-web-crawler.html/) configured for the customer's website.
+- **Curate Opinionated Answers** - Inform agent responses using a Kendra Index configured with authoritative data sources: customer documents stored in [Amazon Simple Storage Service](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html) (S3) and [Web Crawler](https://docs.aws.amazon.com/kendra/latest/dg/data-source-web-crawler.html) configured for the customer's website.
 
 ## Solution Architecture
 
